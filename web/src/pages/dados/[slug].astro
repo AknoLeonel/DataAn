@@ -1,0 +1,182 @@
+---
+import Base from '../../layouts/Base.astro';
+import ChartBlock from '../../components/ChartBlock.astro';
+import DatasetCard from '../../components/DatasetCard.astro';
+import Icon from '../../components/Icon.astro';
+import KpiTile from '../../components/KpiTile.astro';
+import { categoryName, getCatalog, getDataset } from '../../lib/data';
+import { formatDateTime, formatInt } from '../../lib/format';
+import { SITE, absolute, url } from '../../lib/site';
+
+export function getStaticPaths() {
+  return (getCatalog()?.datasets ?? []).map((e) => ({ params: { slug: e.slug } }));
+}
+
+const { slug } = Astro.params as { slug: string };
+const ds = getDataset(slug);
+const catalog = getCatalog()!;
+const entry = catalog.datasets.find((e) => e.slug === slug)!;
+const cat = categoryName(ds.category);
+const csvPath = `/data/csv/${slug}.csv`;
+const jsonPath = `/data/datasets/${slug}.json`;
+const csv = url(csvPath);
+const related = [
+  ...catalog.datasets.filter((e) => e.slug !== slug && e.category === ds.category),
+  ...catalog.datasets.filter((e) => e.slug !== slug && e.category !== ds.category),
+].slice(0, 3);
+
+const description = `${ds.summary} Fonte: ${ds.sources.map((s) => s.name.split(' — ')[0]).join(', ')}. Atualizado automaticamente.`;
+const jsonld = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Dataset',
+    name: ds.title,
+    description: ds.description,
+    url: absolute(`/dados/${slug}/`),
+    keywords: [cat, ...ds.tags],
+    inLanguage: 'pt-BR',
+    isAccessibleForFree: true,
+    dateModified: ds.updated_at,
+    temporalCoverage: ds.coverage,
+    spatialCoverage: { '@type': 'Place', name: 'Brasil' },
+    creator: { '@type': 'Organization', name: SITE.name, url: absolute('/') },
+    isBasedOn: ds.sources.map((s) => s.url),
+    citation: ds.sources.map((s) => s.name),
+    license: ds.sources[0]?.license,
+    variableMeasured: ds.columns.map((c) => ({ '@type': 'PropertyValue', name: c.name, description: c.description })),
+    distribution: [
+      { '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: absolute(csvPath) },
+      { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: absolute(jsonPath) },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: absolute('/') },
+      { '@type': 'ListItem', position: 2, name: cat, item: absolute(`/categorias/${ds.category}/`) },
+      { '@type': 'ListItem', position: 3, name: ds.title, item: absolute(`/dados/${slug}/`) },
+    ],
+  },
+];
+const skillPct = ds.model ? Math.round(ds.model.skill * 100) : 0;
+---
+<Base title={ds.title} description={description} jsonld={jsonld} ogType="article">
+  <div class="container page-flow">
+    <nav class="crumbs" aria-label="Trilha de navegação">
+      <ol>
+        <li><a href={url('/')}>Início</a></li>
+        <li><a href={url(`/categorias/${ds.category}/`)}>{cat}</a></li>
+        <li aria-current="page">{ds.title}</li>
+      </ol>
+    </nav>
+
+    <header class="ds-head">
+      <a class:list={['tag', `cat-${ds.category}`]} href={url(`/categorias/${ds.category}/`)}>{cat}</a>
+      <h1>{ds.title}</h1>
+      <p class="lead">{ds.description}</p>
+      <dl class="meta-list">
+        <div>
+          <dt>Fonte</dt>
+          <dd>{ds.sources.map((s, i) => <>{i > 0 && ', '}<a href={s.url} rel="noopener">{s.name.split(' — ')[0]}</a></>)}</dd>
+        </div>
+        <div><dt>Frequência</dt><dd>{ds.frequency}</dd></div>
+        {ds.coverage && <div><dt>Cobertura</dt><dd>{ds.coverage}</dd></div>}
+        {ds.data_until && <div><dt>Dados até</dt><dd>{ds.data_until}</dd></div>}
+        <div><dt>Atualizado em</dt><dd><time datetime={ds.updated_at}>{formatDateTime(ds.updated_at)}</time></dd></div>
+      </dl>
+    </header>
+
+    {entry.stale && (
+      <p class="notice" role="status">
+        <Icon name="alert" />
+        <span>
+          A última coleta desta fonte falhou. Exibimos a versão válida mais recente, de {formatDateTime(ds.updated_at)}.
+          Detalhes na <a href={url('/status/')}>página de status</a>.
+        </span>
+      </p>
+    )}
+
+    {ds.kpis.length > 0 && (
+      <section aria-labelledby="kpis-titulo">
+        <h2 id="kpis-titulo" class="sr-only">Indicadores principais</h2>
+        <ul class="grid grid-4" role="list">
+          {ds.kpis.map((k) => <KpiTile kpi={k} tag="li" />)}
+        </ul>
+      </section>
+    )}
+
+    {ds.insights.length > 0 && (
+      <section class="card insights" aria-labelledby="insights-titulo">
+        <h2 id="insights-titulo">O que os dados mostram</h2>
+        <ul>{ds.insights.map((i) => <li>{i}</li>)}</ul>
+      </section>
+    )}
+
+    {ds.charts.map((c) => <ChartBlock chart={c} csvHref={csv} />)}
+
+    {ds.model && (
+      <section class="card" aria-labelledby="modelo-titulo">
+        <h2 id="modelo-titulo">Como avaliamos a previsão</h2>
+        <p class="muted">
+          {ds.model.name}, prevendo {ds.model.target.toLowerCase()} em um horizonte de {ds.model.horizon}. Comparamos
+          com uma referência simples ({ds.model.baseline.toLowerCase()}) usando apenas dados do passado em cada ponto
+          do teste.
+        </p>
+        <div class="model-grid">
+          <div class="kpi"><span class="kpi-label">Erro médio do modelo</span><span class="kpi-value">{formatInt(ds.model.mae)}</span></div>
+          <div class="kpi"><span class="kpi-label">Erro médio da referência</span><span class="kpi-value">{formatInt(ds.model.mae_baseline)}</span></div>
+          <div class="kpi">
+            <span class="kpi-label">Ganho sobre a referência</span>
+            <span class="kpi-value">{skillPct > 0 ? '+' : ''}{skillPct}%</span>
+          </div>
+        </div>
+        {ds.model.notes && <p class="small muted">{ds.model.notes}</p>}
+        {skillPct <= 0 && (
+          <p class="notice"><Icon name="info" /><span>O modelo não superou a referência no teste recente: use a projeção com cautela.</span></p>
+        )}
+      </section>
+    )}
+
+    <div class="two-col">
+      <section class="card prose" aria-labelledby="metodologia">
+        <h2 id="metodologia">Metodologia</h2>
+        <ul>{ds.methodology.map((m) => <li>{m}</li>)}</ul>
+        <p class="small muted">
+          Fontes: {ds.sources.map((s, i) => <>{i > 0 && '; '}<a href={s.url} rel="noopener">{s.name}</a>{s.license && ` (${s.license})`}</>)}.
+        </p>
+      </section>
+      <section class="card" aria-labelledby="baixar">
+        <h2 id="baixar">Baixar e usar os dados</h2>
+        <p class="muted">{formatInt(ds.rows)} linhas, atualizadas automaticamente. Use à vontade e cite as fontes.</p>
+        <div class="dl-list">
+          <a class="btn btn-primary" href={csv} download><Icon name="download" /> CSV</a>
+          <a class="btn btn-ghost" href={url(jsonPath)}><Icon name="code" /> JSON</a>
+        </div>
+        <h3 class="small code-title">Python</h3>
+        <pre><code>{`import pandas as pd\ndf = pd.read_csv("${absolute(csvPath)}")`}</code></pre>
+        {ds.columns.length > 0 && (
+          <details class="table-toggle">
+            <summary>Dicionário de dados</summary>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th scope="col">Coluna</th><th scope="col">Descrição</th></tr></thead>
+                <tbody>{ds.columns.map((c) => <tr><th scope="row"><code>{c.name}</code></th><td class="wrap-anywhere">{c.description}</td></tr>)}</tbody>
+              </table>
+            </div>
+          </details>
+        )}
+      </section>
+    </div>
+
+    {related.length > 0 && (
+      <section aria-labelledby="relacionados">
+        <div class="section-head"><h2 id="relacionados">Veja também</h2></div>
+        <div class="grid grid-3">{related.map((e) => <DatasetCard entry={e} />)}</div>
+      </section>
+    )}
+  </div>
+</Base>
+<script>
+  import '../../scripts/charts';
+</script>

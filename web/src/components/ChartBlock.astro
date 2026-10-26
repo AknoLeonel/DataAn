@@ -1,0 +1,40 @@
+---
+import type { Chart as ChartSpec } from '../lib/types';
+import Chart from './Chart.astro';
+import DataTable from './DataTable.astro';
+
+interface Props {
+  chart: ChartSpec;
+  csvHref?: string;
+}
+const { chart, csvHref } = Astro.props;
+// Pequenos múltiplos compartilham uma legenda; cada painel é um gráfico próprio.
+const legend =
+  chart.type === 'grid'
+    ? chart.charts[0].series.map((s) => ({ name: s.name, cls: `s${s.color}`, dashed: s.style === 'dashed' }))
+    : [];
+---
+<section class="card" aria-labelledby={`h-${chart.id}`}>
+  {chart.type === 'grid' ? (
+    <div class="viz">
+      <div class="viz-head">
+        <h2 id={`h-${chart.id}`}>{chart.title}</h2>
+        {chart.subtitle && <p>{chart.subtitle}</p>}
+      </div>
+      {legend.length > 1 && (
+        <ul class="legend" aria-label="Legenda">
+          {legend.map((l) => (
+            <li><span class:list={['key', 'key-line', l.cls, { dashed: l.dashed }]} />{l.name}</li>
+          ))}
+        </ul>
+      )}
+      <div class="viz-grid">
+        {chart.charts.map((c) => <Chart chart={c} level={3} compact showLegend={false} table={false} />)}
+      </div>
+      {chart.note && <p class="viz-note">{chart.note}</p>}
+      <DataTable chart={chart} csvHref={csvHref} />
+    </div>
+  ) : (
+    <Chart chart={chart} csvHref={csvHref} />
+  )}
+</section>

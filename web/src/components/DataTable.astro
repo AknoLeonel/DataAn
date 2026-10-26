@@ -1,0 +1,78 @@
+---
+// Visão em tabela de cada gráfico: tudo que o gráfico mostra fica acessível sem passar o mouse.
+import { formatDate, formatValue } from '../lib/format';
+import type { Chart, LineChart } from '../lib/types';
+
+interface Props {
+  chart: Chart;
+  csvHref?: string;
+}
+const { chart, csvHref } = Astro.props;
+const LIMIT = 24;
+
+type Table = { head: string[]; rows: string[][]; numeric: boolean[]; caption: string };
+
+function lineTable(c: LineChart): Table {
+  const xs = Array.from(new Set(c.series.flatMap((s) => s.points.map(([d]) => d)))).sort().reverse();
+  const shown = xs.slice(0, LIMIT);
+  const maps = c.series.map((s) => new Map(s.points));
+  return {
+    head: ['Data', ...c.series.map((s) => s.name)],
+    numeric: [false, ...c.series.map(() => true)],
+    rows: shown.map((d) => [
+      formatDate(d, c.x_kind),
+      ...maps.map((m) => {
+        const v = m.get(d);
+        return v === undefined || v === null ? '—' : formatValue(v, c.format);
+      }),
+    ]),
+    caption: xs.length > LIMIT ? `${LIMIT} registros mais recentes de ${xs.length}.` : `${xs.length} registros.`,
+  };
+}
+
+let table: Table;
+if (chart.type === 'line') {
+  table = lineTable(chart);
+} else if (chart.type === 'grid') {
+  const names = Array.from(new Set(chart.charts.flatMap((c) => c.series.map((s) => s.name))));
+  table = {
+    head: ['', ...names.map((n) => `${n} (último)`)],
+    numeric: [false, ...names.map(() => true)],
+    rows: chart.charts.map((c) => [
+      c.title,
+      ...names.map((n) => {
+        const s = c.series.find((x) => x.name === n);
+        const last = s ? [...s.points].reverse().find(([, v]) => v !== null) : undefined;
+        return last ? `${formatValue(last[1] as number, c.format)} (${formatDate(last[0], c.x_kind)})` : '—';
+      }),
+    ]),
+    caption: 'Último valor de cada série.',
+  };
+} else {
+  table = {
+    head: ['', 'Valor'],
+    numeric: [false, true],
+    rows: chart.items.map((i) => [i.label, formatValue(i.value, chart.format, { signed: chart.type === 'column' && chart.diverging })]),
+    caption: `${chart.items.length} itens.`,
+  };
+}
+---
+<details class="table-toggle">
+  <summary>Ver dados em tabela</summary>
+  <div class="table-wrap">
+    <table>
+      <caption>
+        {chart.title}: {table.caption}
+        {csvHref && <> <a href={csvHref}>Baixar CSV completo</a>.</>}
+      </caption>
+      <thead>
+        <tr>{table.head.map((h, i) => <th scope="col" class:list={{ num: table.numeric[i] }}>{h}</th>)}</tr>
+      </thead>
+      <tbody>
+        {table.rows.map((r) => (
+          <tr>{r.map((cell, i) => (i === 0 ? <th scope="row">{cell}</th> : <td class:list={{ num: table.numeric[i] }}>{cell}</td>))}</tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</details>

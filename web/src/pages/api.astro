@@ -1,0 +1,80 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCatalog } from '../lib/data';
+import { absolute, url } from '../lib/site';
+
+const catalog = getCatalog();
+const example = catalog?.datasets[0]?.slug ?? 'selic';
+const endpoints = [
+  { path: '/data/catalog.json', desc: 'Catálogo: categorias, conjuntos, indicador de destaque e se está desatualizado.' },
+  { path: `/data/datasets/{slug}.json`, desc: 'Conjunto completo: indicadores, gráficos (com os pontos), análises, metodologia e fontes.' },
+  { path: `/data/csv/{slug}.csv`, desc: 'Dados tabulares completos em CSV (UTF-8, vírgula como separador, ponto decimal).' },
+  { path: '/data/status.json', desc: 'Saúde do pipeline: última execução, erros e histórico.' },
+];
+---
+<Base title="API de dados abertos" description="Acesse os dados do DataAn em JSON e CSV, sem cadastro e sem chave: catálogo, conjuntos completos e status do pipeline.">
+  <div class="container page-flow">
+    <nav class="crumbs" aria-label="Trilha de navegação">
+      <ol><li><a href={url('/')}>Início</a></li><li aria-current="page">API</li></ol>
+    </nav>
+    <header>
+      <h1>API de dados abertos</h1>
+      <p class="lead muted">
+        Tudo o que você vê no site está disponível como arquivos estáticos em JSON e CSV. Sem cadastro, sem chave e
+        sem limite de uso, servidos por CDN. Atualizados uma vez por dia.
+      </p>
+    </header>
+
+    <section class="card" aria-labelledby="endpoints">
+      <h2 id="endpoints">Endpoints</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Caminho</th><th scope="col">Conteúdo</th></tr></thead>
+          <tbody>
+            {endpoints.map((e) => (
+              <tr><th scope="row"><code>{url(e.path)}</code></th><td class="wrap-anywhere">{e.desc}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {catalog && (
+        <p class="small muted">
+          Slugs disponíveis: {catalog.datasets.map((d, i) => <>{i > 0 && ', '}<code>{d.slug}</code></>)}.
+        </p>
+      )}
+    </section>
+
+    <div class="two-col">
+      <section class="card" aria-labelledby="python">
+        <h2 id="python">Python</h2>
+        <pre><code>{`import pandas as pd
+import requests
+
+base = "${absolute('/data')}"
+catalogo = requests.get(f"{base}/catalog.json", timeout=30).json()
+
+df = pd.read_csv(f"{base}/csv/${example}.csv")
+print(df.tail())`}</code></pre>
+      </section>
+      <section class="card" aria-labelledby="js">
+        <h2 id="js">JavaScript</h2>
+        <pre><code>{`const base = "${absolute('/data')}";
+const res = await fetch(\`\${base}/datasets/${example}.json\`);
+const dataset = await res.json();
+console.log(dataset.kpis);`}</code></pre>
+        <h3 class="small code-title">Terminal</h3>
+        <pre><code>{`curl -s ${absolute('/data/catalog.json')}`}</code></pre>
+      </section>
+    </div>
+
+    <section class="card prose" aria-labelledby="regras">
+      <h2 id="regras">Boas práticas</h2>
+      <ul>
+        <li>O campo <code>schema_version</code> muda quando o formato muda de forma incompatível.</li>
+        <li>Use <code>updated_at</code> (quando coletamos) e <code>data_until</code> (último dado da fonte) para saber a atualidade.</li>
+        <li>Se <code>stale</code> for verdadeiro no catálogo, a última coleta falhou e o arquivo é a versão válida anterior.</li>
+        <li>Os dados pertencem às fontes originais: cite-as conforme a licença indicada em cada conjunto.</li>
+      </ul>
+    </section>
+  </div>
+</Base>

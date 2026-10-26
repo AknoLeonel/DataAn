@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, url } from '../lib/site';
+---
+<Base title="Sobre e metodologia" description="O que é o DataAn, como os dados são coletados, validados e publicados, e nossos princípios de transparência e privacidade.">
+  <div class="container page-flow">
+    <nav class="crumbs" aria-label="Trilha de navegação">
+      <ol><li><a href={url('/')}>Início</a></li><li aria-current="page">Sobre</li></ol>
+    </nav>
+    <header>
+      <h1>Sobre o DataAn</h1>
+      <p class="lead muted">
+        Um ecossistema aberto de visualização de dados públicos do Brasil. A ideia é simples: dado oficial, tratado
+        com rigor e explicado de forma que qualquer pessoa entenda.
+      </p>
+    </header>
+
+    <div class="two-col">
+      <section class="card prose" aria-labelledby="principios">
+        <h2 id="principios">Princípios</h2>
+        <ul>
+          <li><strong>Fonte primeiro.</strong> Todo número tem fonte oficial, link e licença na própria página.</li>
+          <li><strong>Honestidade estatística.</strong> Previsões só aparecem com teste fora da amostra e comparação com uma referência simples, mesmo quando o modelo perde.</li>
+          <li><strong>Reprodutível.</strong> O código é aberto e os dados podem ser baixados em CSV e JSON.</li>
+          <li><strong>Acessível.</strong> Gráficos com tabela equivalente, navegação por teclado e cores testadas para daltonismo.</li>
+        </ul>
+      </section>
+      <section class="card prose" aria-labelledby="privacidade">
+        <h2 id="privacidade">Privacidade e segurança</h2>
+        <ul>
+          <li>Sem cookies, sem analytics e sem rastreadores de terceiros.</li>
+          <li>Site estático: não há banco de dados nem formulários para atacar.</li>
+          <li>Política de segurança de conteúdo (CSP) restrita: só executa scripts do próprio site.</li>
+          <li>O único dado guardado no seu navegador é a preferência de tema claro ou escuro.</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="card prose" aria-labelledby="arquitetura">
+      <h2 id="arquitetura">Como funciona por dentro</h2>
+      <ol>
+        <li>Um pipeline em Python roda no GitHub Actions todos os dias e a cada mudança no código.</li>
+        <li>Cada conjunto de dados é um módulo que busca a fonte, aplica checagens de qualidade, calcula indicadores e gera gráficos em um formato padronizado.</li>
+        <li>O resultado é validado por um contrato de dados e publicado como JSON e CSV.</li>
+        <li>O site é gerado de forma estática (Astro) a partir desses arquivos: rápido, indexável e barato de manter.</li>
+        <li>O status de cada execução é público na <a href={url('/status/')}>página de status</a>.</li>
+      </ol>
+      <p>
+        Quer sugerir uma fonte ou contribuir com um novo conjunto de dados? Veja o
+        <a href={`${SITE.repo}#adicionar-um-novo-conjunto-de-dados`} rel="noopener">guia no repositório</a>.
+      </p>
+    </section>
+
+    <section class="card prose" aria-labelledby="limites">
+      <h2 id="limites">Limitações</h2>
+      <ul>
+        <li>Os dados são tão bons quanto as fontes. Revisões nas fontes aparecem aqui na coleta seguinte.</li>
+        <li>Qualidade do ar e temperatura vêm de modelos e reanálises (Copernicus, NASA), não de estações locais.</li>
+        <li>Casos de dengue recentes são estimativas que ainda podem mudar com notificações atrasadas.</li>
+        <li>Este não é um canal oficial de nenhum órgão público.</li>
+      </ul>
+    </section>
+  </div>
+</Base>

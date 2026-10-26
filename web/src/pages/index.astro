@@ -1,0 +1,98 @@
+---
+import Base from '../layouts/Base.astro';
+import DatasetCard from '../components/DatasetCard.astro';
+import Icon from '../components/Icon.astro';
+import { getCatalog } from '../lib/data';
+import { formatDateTime } from '../lib/format';
+import { SITE, url } from '../lib/site';
+
+const catalog = getCatalog();
+const entries = catalog?.datasets ?? [];
+const categories = catalog?.categories ?? [];
+const sources = new Set(entries.flatMap((e) => e.sources.map((s) => s.split(' — ')[0].split(' (')[0])));
+---
+<Base description={SITE.description}>
+  <section class="hero container">
+    <p class="eyebrow">Plataforma aberta de dados públicos</p>
+    <h1>Dados públicos do Brasil, explicados em gráficos.</h1>
+    <p class="lead">
+      Economia, saúde, meio ambiente, clima e demografia em um só lugar: coletados de fontes oficiais,
+      validados e atualizados automaticamente todos os dias.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#explorar">Explorar dados <Icon name="arrowRight" /></a>
+      <a class="btn btn-ghost" href={url('/api/')}><Icon name="code" /> API aberta</a>
+    </div>
+    {catalog && (
+      <div class="hero-meta">
+        <span><span class="live-dot" aria-hidden="true" />Atualizado em {formatDateTime(catalog.generated_at)}</span>
+        <span><strong>{entries.length}</strong> conjuntos de dados</span>
+        <span><strong>{categories.length}</strong> áreas</span>
+        <span><strong>{sources.size}</strong> fontes oficiais</span>
+      </div>
+    )}
+  </section>
+
+  <section id="explorar" class="container" data-explore aria-labelledby="explorar-titulo">
+    <div class="section-head">
+      <h2 id="explorar-titulo">Explorar</h2>
+      <span class="muted small js-only" data-count aria-live="polite"></span>
+    </div>
+    {entries.length > 0 ? (
+      <>
+        <div class="filters js-only">
+          <label class="search">
+            <span class="sr-only">Buscar conjuntos de dados</span>
+            <Icon name="search" />
+            <input type="search" placeholder="Buscar: inflação, dengue, PM2.5…" autocomplete="off" enterkeyhint="search" />
+          </label>
+          <div class="chips" role="group" aria-label="Filtrar por área">
+            <button class="chip" type="button" data-filter="todas" aria-pressed="true">Todas</button>
+            {categories.map((c) => (
+              <button class="chip" type="button" data-filter={c.slug} aria-pressed="false">{c.name}</button>
+            ))}
+          </div>
+        </div>
+        <div class="grid grid-3">
+          {entries.map((e) => <DatasetCard entry={e} />)}
+        </div>
+        <p class="empty" data-empty hidden>Nenhum conjunto encontrado. Tente outro termo ou área.</p>
+      </>
+    ) : (
+      <div class="card empty">
+        <p><strong>Os dados ainda estão sendo coletados.</strong></p>
+        <p>O pipeline roda automaticamente a cada publicação e uma vez por dia. Volte em alguns minutos.</p>
+      </div>
+    )}
+  </section>
+
+  <section class="container" aria-labelledby="como-funciona">
+    <div class="section-head"><h2 id="como-funciona">Como funciona</h2></div>
+    <ol class="grid grid-3 steps">
+      <li class="card">
+        <h3>Coleta automática</h3>
+        <p class="muted">
+          Todos os dias, o pipeline consulta APIs oficiais (Banco Central, IBGE, Fiocruz, NASA, Copernicus),
+          com retentativas e limites de tempo.
+        </p>
+      </li>
+      <li class="card">
+        <h3>Validação e análise</h3>
+        <p class="muted">
+          Cada conjunto passa por um contrato de dados e checagens de qualidade. Previsões só são publicadas com
+          backtest comparado a um modelo ingênuo.
+        </p>
+      </li>
+      <li class="card">
+        <h3>Publicação aberta</h3>
+        <p class="muted">
+          Se uma fonte falha, a última versão válida continua no ar, sinalizada. Tudo fica disponível em{' '}
+          <a href={url('/api/')}>JSON e CSV</a>, e o <a href={url('/status/')}>status</a> é público.
+        </p>
+      </li>
+    </ol>
+  </section>
+</Base>
+<script>
+  import '../scripts/explore';
+</script>

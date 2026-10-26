@@ -1,0 +1,50 @@
+---
+import { formatValue } from '../lib/format';
+import { sparkline } from '../lib/charts/sparkline';
+import type { Kpi } from '../lib/types';
+import Icon from './Icon.astro';
+import StatusPill from './StatusPill.astro';
+
+interface Props {
+  kpi: Kpi;
+  tag?: 'div' | 'li';
+  card?: boolean;
+}
+const { kpi, tag: Tag = 'div', card = true } = Astro.props;
+const value = formatValue(kpi.value, kpi.format, { unit: false });
+const unit = kpi.format.unit;
+
+let deltaClass = '';
+let deltaIcon: 'arrowUp' | 'arrowDown' | 'minus' = 'minus';
+let deltaText = '';
+let deltaSr = '';
+if (kpi.delta) {
+  const v = kpi.delta.value;
+  const dir = Math.abs(v) < 1e-9 ? 0 : Math.sign(v);
+  deltaIcon = dir > 0 ? 'arrowUp' : dir < 0 ? 'arrowDown' : 'minus';
+  if (dir !== 0 && kpi.delta.good !== 'neutral') {
+    const good = (kpi.delta.good === 'up') === dir > 0;
+    deltaClass = good ? 'is-good' : 'is-bad';
+    deltaSr = good ? ' (melhora)' : ' (piora)';
+  }
+  deltaText = formatValue(v, kpi.delta.format, { signed: true });
+}
+const spark = kpi.spark?.length ? sparkline(kpi.spark, `Tendência recente de ${kpi.label}`) : '';
+---
+<Tag class:list={['kpi', { card }]}>
+  <span class="kpi-label">{kpi.label}</span>
+  <div class="kpi-row">
+    <span class="kpi-value">{value}{unit && <span class="unit">{unit}</span>}</span>
+    {spark && <Fragment set:html={spark} />}
+  </div>
+  {kpi.delta && (
+    <span class:list={['delta', deltaClass]}>
+      <Icon name={deltaIcon} />
+      {deltaText}
+      <span class="period">{kpi.delta.period}</span>
+      {deltaSr && <span class="sr-only">{deltaSr}</span>}
+    </span>
+  )}
+  {kpi.status && kpi.status_label && <StatusPill level={kpi.status} label={kpi.status_label} />}
+  {kpi.as_of && <span class="kpi-meta">{kpi.as_of}</span>}
+</Tag>

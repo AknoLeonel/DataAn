@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.ruff_cache/
+build/
+
+# Web
+web/node_modules/
+web/dist/
+web/.astro/
+
+# Dados gerados pelo pipeline (publicados pelo deploy, não versionados)
+web/public/data/*
+!web/public/data/.gitkeep
+
+# Sistema
+.DS_Store
+*.log

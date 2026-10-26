@@ -1,0 +1,13 @@
+---
+// Status sempre com ícone + texto: a cor nunca carrega o significado sozinha.
+import type { StatusLevel } from '../lib/types';
+import Icon from './Icon.astro';
+
+interface Props {
+  level: StatusLevel;
+  label: string;
+}
+const { level, label } = Astro.props;
+const icon = level === 'good' ? 'check' : level === 'critical' ? 'x' : 'alert';
+---
+<span class:list={['status-pill', `st-${level}`]}><Icon name={icon} />{label}</span>

@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import StatusPill from '../components/StatusPill.astro';
+import { getStatus } from '../lib/data';
+import { formatDateTime, formatInt } from '../lib/format';
+import { url } from '../lib/site';
+import type { StatusLevel } from '../lib/types';
+
+const status = getStatus();
+const datasets = status?.datasets ?? [];
+const failing = datasets.filter((d) => !d.ok);
+const missing = failing.filter((d) => !d.stale);
+const level: StatusLevel = !status ? 'warning' : missing.length ? 'critical' : failing.length ? 'warning' : 'good';
+const headline = !status
+  ? 'Aguardando a primeira execução do pipeline'
+  : level === 'good'
+    ? 'Todos os conjuntos de dados estão atualizados'
+    : level === 'warning'
+      ? `${failing.length} ${failing.length === 1 ? 'conjunto está desatualizado' : 'conjuntos estão desatualizados'}`
+      : `${missing.length} ${missing.length === 1 ? 'conjunto indisponível' : 'conjuntos indisponíveis'}`;
+const icon = level === 'good' ? 'check' : level === 'critical' ? 'x' : 'alert';
+const history = status?.history.slice(-30) ?? [];
+const totalRuns = history.length;
+const okRuns = history.filter((h) => h.failed === 0).length;
+---
+<Base title="Status do pipeline" description="Saúde operacional do pipeline de dados do DataAn: última execução, falhas e histórico por conjunto de dados.">
+  <div class="container page-flow">
+    <nav class="crumbs" aria-label="Trilha de navegação">
+      <ol><li><a href={url('/')}>Início</a></li><li aria-current="page">Status</li></ol>
+    </nav>
+    <header>
+      <h1>Status do pipeline</h1>
+      <p class="lead muted">
+        O pipeline roda uma vez por dia e a cada publicação. Cada conjunto é coletado de forma isolada: se uma fonte
+        falha, a última versão válida continua no ar e é marcada como desatualizada.
+      </p>
+    </header>
+
+    <section class="card" aria-labelledby="saude">
+      <div class:list={['health', `st-${level}`]}>
+        <Icon name={icon} />
+        <div>
+          <h2 id="saude">{headline}</h2>
+          {status && (
+            <p class="muted small health-meta">
+              Última execução em {formatDateTime(status.generated_at)}, em {status.duration_s.toFixed(1)} s.
+              {status.run_url && <> <a href={status.run_url} rel="noopener">Ver log da execução</a>.</>}
+            </p>
+          )}
+        </div>
+      </div>
+      {totalRuns > 0 && (
+        <p class="small muted">{okRuns} de {totalRuns} execuções recentes sem nenhuma falha.</p>
+      )}
+    </section>
+
+    {datasets.length > 0 && (
+      <section class="card" aria-labelledby="por-conjunto">
+        <h2 id="por-conjunto">Por conjunto de dados</h2>
+        <div class="table-wrap">
+          <table>
+            <caption>Resultado da última execução. Histórico: cada barra é uma execução (mais recente à direita).</caption>
+            <thead>
+              <tr>
+                <th scope="col">Conjunto</th>
+                <th scope="col">Situação</th>
+                <th scope="col">Dados até</th>
+                <th scope="col" class="num">Linhas</th>
+                <th scope="col" class="num">Tempo</th>
+                <th scope="col">Histórico</th>
+              </tr>
+            </thead>
+            <tbody>
+              {datasets.map((d) => {
+                const runs = history.map((h) => h.results[d.slug]);
+                const okCount = runs.filter((r) => r === true).length;
+                const ran = runs.filter((r) => r !== undefined).length;
+                return (
+                  <tr>
+                    <th scope="row"><a href={url(`/dados/${d.slug}/`)}>{d.title}</a></th>
+                    <td>
+                      {d.ok ? <StatusPill level="good" label="Atualizado" /> : d.stale ? <StatusPill level="warning" label="Desatualizado" /> : <StatusPill level="critical" label="Indisponível" />}
+                      {d.error && <div class="small muted wrap-anywhere">{d.error}</div>}
+                    </td>
+                    <td>{d.data_until ?? '—'}</td>
+                    <td class="num">{formatInt(d.rows)}</td>
+                    <td class="num">{d.duration_s.toFixed(1)} s</td>
+                    <td>
+                      <div class="history" role="img" aria-label={`${okCount} de ${ran} execuções com sucesso`}>
+                        {runs.map((r) => <span class:list={{ fail: r === false, none: r === undefined }} />)}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <section class="card prose" aria-labelledby="garantias">
+      <h2 id="garantias">Garantias operacionais</h2>
+      <ul>
+        <li>Retentativas com espera exponencial e limite de tempo em todas as chamadas às fontes.</li>
+        <li>Contrato de dados validado (Pydantic) e checagens de qualidade antes de publicar: volume mínimo, faixas plausíveis, ordem temporal e atraso máximo.</li>
+        <li>Escritas atômicas: um arquivo nunca é publicado pela metade.</li>
+        <li>Falha isolada: um conjunto com problema não interrompe os demais.</li>
+        <li>Fallback: a versão publicada anteriormente é reaproveitada quando a fonte está fora do ar.</li>
+      </ul>
+      <p class="small muted">Dados de status em <a href={url('/data/status.json')}><code>/data/status.json</code></a>.</p>
+    </section>
+  </div>
+</Base>

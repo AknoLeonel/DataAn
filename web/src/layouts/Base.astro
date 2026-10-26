@@ -1,0 +1,148 @@
+---
+import '../styles/global.css';
+import Icon from '../components/Icon.astro';
+import { SITE, absolute, url } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Objetos JSON-LD (schema.org) adicionais desta página. */
+  jsonld?: Record<string, unknown>[];
+  noindex?: boolean;
+  ogType?: 'website' | 'article';
+}
+
+const { title, description = SITE.description, jsonld = [], noindex = false, ogType = 'website' } = Astro.props;
+const fullTitle = title ? `${title} | ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:4321').href;
+const ogImage = absolute('/og.png');
+const path = Astro.url.pathname;
+const nav = [
+  { href: url('/'), label: 'Explorar' },
+  { href: url('/categorias/'), label: 'Categorias' },
+  { href: url('/api/'), label: 'API' },
+  { href: url('/status/'), label: 'Status' },
+  { href: url('/sobre/'), label: 'Sobre' },
+];
+const isCurrent = (href: string) => (href === url('/') ? path === href : path.startsWith(href));
+
+const siteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  description: SITE.description,
+  url: absolute('/'),
+  inLanguage: 'pt-BR',
+  publisher: { '@type': 'Organization', name: SITE.name, url: absolute('/'), sameAs: [SITE.repo] },
+};
+const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u003c'));
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+    <meta name="generator" content={Astro.generator} />
+
+    <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={url('/favicon.ico')} sizes="32x32" />
+    <link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} />
+    <link rel="manifest" href={url('/manifest.webmanifest')} />
+    <link rel="sitemap" href={url('/sitemap-index.xml')} />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content={SITE.locale} />
+    <meta property="og:title" content={title ?? SITE.name} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${SITE.name} — ${SITE.tagline}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title ?? SITE.name} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Aplica o tema salvo antes da pintura (evita flash). -->
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var t = localStorage.getItem('dataan-theme');
+          if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    {ld.map((json) => <script type="application/ld+json" set:html={json} />)}
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href={url('/')} aria-label={`${SITE.name} — início`}>
+          <Icon name="logo" class="logo" />
+          <span>{SITE.name}</span>
+        </a>
+        <nav class="nav-desktop" aria-label="Principal">
+          {nav.map((n) => <a href={n.href} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
+        </nav>
+        <button class="icon-btn theme-toggle js-only" type="button" aria-label="Alternar tema claro/escuro" data-theme-toggle>
+          <Icon name="sun" class="sun" />
+          <Icon name="moon" class="moon" />
+        </button>
+        <details class="menu">
+          <summary class="icon-btn" aria-label="Abrir menu"><Icon name="menu" /></summary>
+          <nav class="nav-mobile" aria-label="Principal (móvel)">
+            {nav.map((n) => <a href={n.href} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>)}
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main id="conteudo" tabindex="-1">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container cols">
+        <div>
+          <a class="brand" href={url('/')}><Icon name="logo" /> <span>{SITE.name}</span></a>
+          <p class="small footer-blurb">
+            Plataforma aberta de dados públicos. Código aberto, sem cookies e sem rastreamento.
+            Os dados pertencem às fontes citadas em cada página.
+          </p>
+        </div>
+        <div>
+          <h2>Plataforma</h2>
+          <ul>
+            <li><a href={url('/categorias/')}>Categorias</a></li>
+            <li><a href={url('/api/')}>API de dados abertos</a></li>
+            <li><a href={url('/status/')}>Status do pipeline</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Projeto</h2>
+          <ul>
+            <li><a href={url('/sobre/')}>Sobre e metodologia</a></li>
+            <li><a href={SITE.repo} rel="noopener">Código no GitHub</a></li>
+            <li><a href={url('/sitemap-index.xml')}>Mapa do site</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+    <script>
+      import '../scripts/theme';
+    </script>
+  </body>
+</html>
