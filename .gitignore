@@ -17,3 +17,7 @@ web/public/data/*
 # Sistema
 .DS_Store
 *.log
+
+# Build na Vercel
+.venv-build/
+.vercel/
