@@ -5,8 +5,8 @@
 **Contexto.** Os dados públicos usados mudam no máximo uma vez por dia. O projeto
 precisa ser barato (idealmente custo zero), seguro, rápido no celular e indexável.
 
-**Decisão.** Um pipeline Python roda no GitHub Actions, gera JSON/CSV validados e
-um site estático (Astro) é construído a partir deles e publicado no GitHub Pages.
+**Decisão.** Um pipeline Python gera JSON/CSV validados durante o build e um site
+estático (Astro) é construído a partir deles. Hospedagem: ver ADR-005.
 
 **Consequências.**
 - Custo zero, sem servidor para manter nem banco para proteger.
@@ -40,6 +40,21 @@ largura real, com interação. O JS total da página de dataset fica em ~15 KB.
 `models.py` (Pydantic, `extra="forbid"`) é a única definição do formato publicado; o
 TypeScript espelha esses tipos. Isso permite que uma pessoa adicione um dataset sem
 tocar no frontend e garante que nada malformado chegue ao site.
+
+## ADR-005: Hospedagem na Vercel (serviço único), não no GitHub Pages
+
+**Decisão.** Um projeto Vercel com um serviço `web` (Astro). O pipeline roda como
+etapa do build desse serviço (`scripts/vercel-build.sh`); um workflow diário do
+GitHub Actions chama um deploy hook para atualizar os dados.
+
+**Por quê.** Cabeçalhos HTTP de segurança configuráveis, domínio na raiz, preview por
+PR e repositório pode ser privado. O pipeline **não** é um serviço Vercel separado:
+é um job em lote cujo resultado o site lê do disco no build. Um serviço Python na
+Vercel exige um app ASGI/WSGI e bindings só funcionam em tempo de execução, então não
+se aplicam a essa dependência de build.
+
+**Quando separar em serviços.** Se surgir uma API dinâmica (ex.: filtros sob demanda,
+FastAPI em `/api/`), ela vira um segundo serviço com rewrite próprio.
 
 ## Evolução prevista
 

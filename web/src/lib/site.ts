@@ -1,4 +1,4 @@
-// Identidade do site e URLs que respeitam o `base` (ex.: /DataAn/ no GitHub Pages).
+// Identidade do site e URLs que respeitam o `base` (ex.: /DataAn/ se publicado em subpasta).
 
 export const SITE = {
   name: 'DataAn',

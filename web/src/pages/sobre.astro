@@ -39,7 +39,7 @@ import { SITE, url } from '../lib/site';
     <section class="card prose" aria-labelledby="arquitetura">
       <h2 id="arquitetura">Como funciona por dentro</h2>
       <ol>
-        <li>Um pipeline em Python roda no GitHub Actions todos os dias e a cada mudança no código.</li>
+        <li>Um pipeline em Python roda no build da Vercel todos os dias (disparado pelo GitHub Actions) e a cada mudança no código.</li>
         <li>Cada conjunto de dados é um módulo que busca a fonte, aplica checagens de qualidade, calcula indicadores e gera gráficos em um formato padronizado.</li>
         <li>O resultado é validado por um contrato de dados e publicado como JSON e CSV.</li>
         <li>O site é gerado de forma estática (Astro) a partir desses arquivos: rápido, indexável e barato de manter.</li>

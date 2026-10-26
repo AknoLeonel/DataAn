@@ -1,0 +1,25 @@
+# Atualiza os dados todo dia: dispara um novo deploy de produção na Vercel,
+# que roda o pipeline no build. 06:17 em Brasília.
+name: Atualização diária
+
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Disparar deploy na Vercel
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error::Configure o secret VERCEL_DEPLOY_HOOK (Vercel > Settings > Git > Deploy Hooks)."
+            exit 1
+          fi
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 -X POST "$HOOK"

@@ -1,11 +1,11 @@
 # DataAn — dados públicos do Brasil, explicados em gráficos
 
-[![Pipeline e deploy](https://github.com/AknoLeonel/DataAn/actions/workflows/deploy.yml/badge.svg)](https://github.com/AknoLeonel/DataAn/actions/workflows/deploy.yml)
+[![Atualização diária](https://github.com/AknoLeonel/DataAn/actions/workflows/refresh.yml/badge.svg)](https://github.com/AknoLeonel/DataAn/actions/workflows/refresh.yml)
 
 Plataforma aberta que coleta dados de fontes oficiais, valida, analisa e publica
 visualizações interativas, atualizadas automaticamente todos os dias.
 
-**Site:** https://aknoleonel.github.io/DataAn/ · **API:** [`/data/catalog.json`](https://aknoleonel.github.io/DataAn/data/catalog.json) · **Status:** [`/status/`](https://aknoleonel.github.io/DataAn/status/)
+**Site:** https://dataan.vercel.app · **API:** [`/data/catalog.json`](https://dataan.vercel.app/data/catalog.json) · **Status:** [`/status/`](https://dataan.vercel.app/status/)
 
 ## Conjuntos de dados
 
@@ -27,16 +27,18 @@ flowchart LR
   subgraph Fontes oficiais
     BCB[Banco Central]; IBGE; IDG[InfoDengue]; OM[Open-Meteo]; NASA[NASA POWER]
   end
-  subgraph "GitHub Actions (diário + a cada push)"
+  GH["GitHub Actions<br/>deploy hook diário"] --> B
+  G["push na main / PR"] --> B
+  subgraph B ["Build na Vercel (serviço web)"]
     P["Pipeline Python<br/>coleta → qualidade → análise"] --> C{"Contrato<br/>Pydantic"}
     C -->|válido| J[(JSON + CSV)]
-    C -->|falhou| F["mantém a última<br/>versão publicada"]
+    C -->|falhou| F["mantém a última<br/>versão em produção"]
     J --> A["Astro<br/>site estático"]
   end
   Fontes --> P
-  A --> GP[GitHub Pages / CDN]
-  GP --> U[Navegador]
-  GP --> API[API estática JSON/CSV]
+  A --> CDN[Vercel CDN]
+  CDN --> U[Navegador]
+  CDN --> API[API estática JSON/CSV]
 ```
 
 Decisões e alternativas estão em [`docs/arquitetura.md`](docs/arquitetura.md).
@@ -49,7 +51,7 @@ Decisões e alternativas estão em [`docs/arquitetura.md`](docs/arquitetura.md).
 - **Estatística honesta**: a previsão de dengue usa Holt amortecido em escala log, validação com origem móvel (só passado → futuro) e é comparada com a previsão ingênua; o intervalo de 80% vem dos erros do próprio backtest. O resultado aparece mesmo quando o modelo perde.
 - **Gráficos próprios em SVG**, sem biblioteca: renderizados no build (funcionam sem JS) e redesenhados no navegador com tooltip, crosshair, toque e teclado. A paleta foi validada para daltonismo, com modo escuro próprio e tabela equivalente para cada gráfico.
 - **SEO**: HTML estático, `sitemap.xml`, canonical, Open Graph e JSON-LD `Dataset`, elegível ao Google Dataset Search.
-- **Segurança**: CSP com hashes (sem `unsafe-inline`), nenhum segredo, Actions com permissões mínimas. Detalhes em [`SECURITY.md`](SECURITY.md).
+- **Segurança**: CSP com hashes (sem `unsafe-inline`), HSTS e bloqueio de iframe via `vercel.json`, Actions sem permissões. Detalhes em [`SECURITY.md`](SECURITY.md).
 
 ## Rodando localmente
 
@@ -116,15 +118,18 @@ web/src/
   pages/        início, dataset, categorias, status, API, sobre
   scripts/      interatividade (tooltip/teclado), busca, tema
 .github/workflows/
-  deploy.yml    pipeline diário + build + GitHub Pages
+  refresh.yml   dispara o deploy diário na Vercel (deploy hook)
   ci.yml        lint, tipos e build em pull requests
+scripts/vercel-build.sh   build na Vercel: pipeline + Astro
+vercel.json               serviço, rotas e cabeçalhos de segurança
 ```
 
 ## Operação
 
-- **Agenda:** todo dia às 06:17 (Brasília), a cada push na `main` e manualmente em *Actions → Pipeline e deploy → Run workflow*.
-- **Falhas:** aparecem como aviso no resumo da execução no Actions e na [página de status](https://aknoleonel.github.io/DataAn/status/). O site segue no ar com a última versão válida.
-- **Domínio próprio:** configure em *Settings → Pages*; o build usa automaticamente a URL e o caminho corretos.
+- **Hospedagem:** Vercel. O build (`scripts/vercel-build.sh`) roda o pipeline e gera o site; cada PR ganha um preview.
+- **Agenda:** todo dia às 06:17 (Brasília) o workflow *Atualização diária* chama um deploy hook da Vercel; também há deploy a cada push na `main` e manualmente em *Actions → Atualização diária → Run workflow*.
+- **Falhas:** aparecem no log de build da Vercel e na [página de status](https://dataan.vercel.app/status/). O site segue no ar com a última versão válida.
+- **Domínio próprio:** configure em *Vercel → Settings → Domains* e defina `SITE_URL` nas variáveis de ambiente do projeto.
 
 ## Licença
 
