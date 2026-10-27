@@ -7,6 +7,22 @@ visualizações interativas, atualizadas automaticamente todos os dias.
 
 **Site:** https://dataan.vercel.app · **API:** [`/data/catalog.json`](https://dataan.vercel.app/data/catalog.json) · **Status:** [`/status/`](https://dataan.vercel.app/status/)
 
+## Em 1 minuto (para quem está avaliando)
+
+Projeto criado e mantido por **Akno Leonel**, cientista de dados ·
+[LinkedIn](https://www.linkedin.com/in/aknoleonel/) · [GitHub](https://github.com/AknoLeonel) · [Portfólio](https://aknoleonel.github.io/) · [Quem fez](https://dataan.vercel.app/autor/)
+
+| Se você tem… | Veja | O que mostra |
+|---|---|---|
+| 1 minuto | [Estudo: o clima ajuda a prever a dengue?](https://dataan.vercel.app/dados/estudo-dengue-clima/) | Pergunta, hipótese, critério definido antes, 5 modelos com validação de origem móvel e a resposta recalculada toda semana, mesmo quando é "não" |
+| 5 minutos | [Notebook do estudo no Colab](https://colab.research.google.com/github/AknoLeonel/DataAn/blob/main/notebooks/estudo-dengue-clima.ipynb) | O mesmo código da página, com análise exploratória e teste de robustez |
+| 10 minutos | [`pipelines/`](pipelines/) e [status ao vivo](https://dataan.vercel.app/status/) | Pipeline em produção: retentativa, servidor alternativo, contrato de dados, fallback e testes |
+
+**Competências demonstradas:** séries temporais e avaliação de modelos (backtest, *skill* vs. ingênuo, intervalos empíricos) ·
+engenharia de dados (ETL diário de APIs públicas instáveis, validação por contrato, observabilidade) ·
+visualização e comunicação (gráficos SVG próprios, textos gerados a partir dos dados, acessibilidade) ·
+produto (site estático na Vercel, API aberta, SEO, CSP restrita, CI).
+
 ## Conjuntos de dados
 
 | Área | Conjunto | Fonte | O que tem de análise |
@@ -16,6 +32,7 @@ visualizações interativas, atualizadas automaticamente todos os dias.
 | Economia | Dólar comercial | Banco Central (SGS) | Variações 30 d / 12 m, histórico com amostragem LTTB |
 | Economia | Taxa de desemprego | IBGE via SGS | Variação interanual, mínimas e máximas da série |
 | Saúde | Dengue nas capitais | InfoDengue (Fiocruz/FGV) | Nowcasting de atraso, **previsão de 4 semanas com backtest** vs. ingênuo |
+| Saúde | Estudo: o clima ajuda a prever a dengue? | InfoDengue (casos + clima) | **Experimento com 5 modelos** (ingênuo, sazonal, Holt, ridge com defasagens, ridge + clima) e critério pré-definido |
 | Meio ambiente | Qualidade do ar | Open-Meteo (Copernicus CAMS) | PM2.5 vs. diretriz da OMS, ranking e dias acima do limite |
 | Clima | Aquecimento nas capitais | NASA POWER (MERRA-2) | Anomalia vs. normal 1991–2020, aquecimento por capital |
 | Demografia | População dos estados | IBGE (SIDRA) | Ranking, concentração e crescimento entre estimativas |
@@ -53,6 +70,13 @@ Decisões e alternativas estão em [`docs/arquitetura.md`](docs/arquitetura.md).
 - **Gráficos próprios em SVG**, sem biblioteca: renderizados no build (funcionam sem JS) e redesenhados no navegador com tooltip, crosshair, toque e teclado. A paleta foi validada para daltonismo, com modo escuro próprio e tabela equivalente para cada gráfico.
 - **SEO**: HTML estático, `sitemap.xml`, canonical, Open Graph e JSON-LD `Dataset`, elegível ao Google Dataset Search.
 - **Segurança**: CSP com hashes (sem `unsafe-inline`), HSTS e bloqueio de iframe via `vercel.json`, Actions sem permissões. Detalhes em [`SECURITY.md`](SECURITY.md).
+
+## Notebooks
+
+| Notebook | Para quê |
+|---|---|
+| [`estudo-dengue-clima.ipynb`](notebooks/estudo-dengue-clima.ipynb) · [Colab](https://colab.research.google.com/github/AknoLeonel/DataAn/blob/main/notebooks/estudo-dengue-clima.ipynb) | Reproduz o estudo de caso com dados ao vivo (instala o pacote `dataan` do GitHub) |
+| [`api-dataan.ipynb`](notebooks/api-dataan.ipynb) · [Colab](https://colab.research.google.com/github/AknoLeonel/DataAn/blob/main/notebooks/api-dataan.ipynb) | Tutorial da API: catálogo, JSON, CSV e uma análise rápida, sem instalar nada |
 
 ## Rodando localmente
 

@@ -19,13 +19,16 @@ export function renderBar(spec: BarChart, width: number, animate = false): Rende
   const scale = nice(lo, hi, 4);
   const valueLabels = items.map((i) => formatValue(i.value, spec.format, { unit: false }));
   const maxValueW = Math.max(...valueLabels.map((l) => textWidth(l)));
+  // Barras negativas crescem para a esquerda: o valor precisa de espaço antes delas.
+  const negLabels = valueLabels.filter((_, i) => items[i].value < 0);
+  const maxNegW = negLabels.length ? Math.max(...negLabels.map((l) => textWidth(l))) + 10 : 0;
 
   const barH = narrow ? 14 : 18;
   const rowH = narrow ? 42 : 30;
   const labelW = narrow ? 0 : Math.min(Math.max(...items.map((i) => textWidth(i.label))) + 12, width * 0.34);
   const top = spec.reference.length ? 22 : 6;
   const height = top + rowH * items.length + 4;
-  const plotL = labelW;
+  const plotL = labelW + maxNegW;
   const plotR = width - maxValueW - 10;
   const x = linear(scale.min, scale.max, plotL, plotR);
   const x0 = x(0);
@@ -43,7 +46,7 @@ export function renderBar(spec: BarChart, width: number, animate = false): Rende
     const w = Math.abs(xv - x0);
     const cls = anyHighlight && !it.highlight ? 'dim' : 's1';
     if (narrow) {
-      parts.push(`<text class="cat" x="${r1(plotL)}" y="${rowTop + 13}">${esc(it.label)}</text>`);
+      parts.push(`<text class="cat" x="0" y="${rowTop + 13}">${esc(it.label)}</text>`);
     } else {
       parts.push(`<text class="cat" x="${r1(labelW - 10)}" y="${r1(barY + barH / 2)}" dy="0.32em" text-anchor="end">${esc(it.label)}</text>`);
     }

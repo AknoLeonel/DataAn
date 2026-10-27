@@ -22,3 +22,25 @@ export function absolute(p = '/'): string {
   const site = (import.meta.env.SITE ?? 'http://localhost:4321').replace(/\/+$/, '');
   return `${site}${url(p)}`;
 }
+
+export const AUTHOR = {
+  name: 'Akno Leonel',
+  role: 'Cientista de Dados',
+  linkedin: 'https://www.linkedin.com/in/aknoleonel/',
+  github: 'https://github.com/AknoLeonel',
+  portfolio: 'https://aknoleonel.github.io/',
+};
+
+/** Notebooks reproduzíveis do repositório, por conjunto de dados. */
+export const NOTEBOOKS: Record<string, string> = {
+  'estudo-dengue-clima': 'estudo-dengue-clima.ipynb',
+};
+export const API_NOTEBOOK = 'api-dataan.ipynb';
+
+export function colabUrl(notebook: string): string {
+  return `https://colab.research.google.com/github/AknoLeonel/DataAn/blob/main/notebooks/${notebook}`;
+}
+
+export function notebookUrl(notebook: string): string {
+  return `${SITE.repo}/blob/main/notebooks/${notebook}`;
+}

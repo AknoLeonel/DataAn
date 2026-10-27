@@ -1,5 +1,5 @@
 # Atalhos de desenvolvimento. Requer Python 3.11+ e Node 22+.
-.PHONY: install data dev build check lint
+.PHONY: install data dev build check lint test
 
 install:
 	python3 -m venv .venv && .venv/bin/pip install -e "pipelines[dev]"
@@ -20,3 +20,6 @@ check: lint
 lint:
 	.venv/bin/ruff check pipelines
 	.venv/bin/ruff format --check pipelines
+
+test:
+	cd pipelines && ../.venv/bin/python -m pytest -q

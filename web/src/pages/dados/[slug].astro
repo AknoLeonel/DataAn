@@ -6,7 +6,7 @@ import Icon from '../../components/Icon.astro';
 import KpiTile from '../../components/KpiTile.astro';
 import { categoryName, getCatalog, getDataset } from '../../lib/data';
 import { formatDateTime, formatInt } from '../../lib/format';
-import { SITE, absolute, url } from '../../lib/site';
+import { NOTEBOOKS, SITE, absolute, colabUrl, notebookUrl, url } from '../../lib/site';
 
 export function getStaticPaths() {
   return (getCatalog()?.datasets ?? []).map((e) => ({ params: { slug: e.slug } }));
@@ -20,6 +20,7 @@ const cat = categoryName(ds.category);
 const csvPath = `/data/csv/${slug}.csv`;
 const jsonPath = `/data/datasets/${slug}.json`;
 const csv = url(csvPath);
+const notebook = NOTEBOOKS[slug];
 const related = [
   ...catalog.datasets.filter((e) => e.slug !== slug && e.category === ds.category),
   ...catalog.datasets.filter((e) => e.slug !== slug && e.category !== ds.category),
@@ -162,6 +163,12 @@ const maeMax = ds.model ? Math.max(ds.model.mae, ds.model.mae_baseline) || 1 : 1
           <a class="btn btn-primary" href={csv} download><Icon name="download" /> CSV</a>
           <a class="btn btn-ghost" href={url(jsonPath)}><Icon name="code" /> JSON</a>
         </div>
+        {notebook && (
+          <p class="notebook-line small">
+            Reproduza a análise: <a href={colabUrl(notebook)} rel="noopener">abrir o notebook no Colab</a>{' · '}
+            <a href={notebookUrl(notebook)} rel="noopener">ver no GitHub</a>
+          </p>
+        )}
         <h3 class="small code-title">Python</h3>
         <pre><code>{`import pandas as pd\ndf = pd.read_csv("${absolute(csvPath)}")`}</code></pre>
         {ds.columns.length > 0 && (

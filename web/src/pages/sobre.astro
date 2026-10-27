@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { SITE, url } from '../lib/site';
+import { AUTHOR, SITE, url } from '../lib/site';
 ---
 <Base title="Sobre e metodologia" description="O que é o DataAn, como os dados são coletados, validados e publicados, e nossos princípios de transparência e privacidade.">
   <div class="container page-flow">
@@ -28,7 +28,7 @@ import { SITE, url } from '../lib/site';
       <section class="card prose" aria-labelledby="privacidade">
         <h2 id="privacidade">Privacidade e segurança</h2>
         <ul>
-          <li>Sem cookies, sem analytics e sem rastreadores de terceiros.</li>
+          <li>Sem cookies e sem rastreadores de terceiros. Contamos visitas só de forma agregada (Vercel Web Analytics, servido pelo próprio domínio): sem cookies, sem identificar você e sem seguir você entre sites.</li>
           <li>Site estático: não há banco de dados nem formulários para atacar.</li>
           <li>Política de segurança de conteúdo (CSP) restrita: só executa scripts do próprio site.</li>
           <li>O único dado guardado no seu navegador é a preferência de tema claro ou escuro.</li>
@@ -46,8 +46,9 @@ import { SITE, url } from '../lib/site';
         <li>O status de cada execução é público na <a href={url('/status/')}>página de status</a>.</li>
       </ol>
       <p>
-        Quer sugerir uma fonte ou contribuir com um novo conjunto de dados? Veja o
+        Quer sugerir uma fonte ou contribuir com um novo conjunto de dados? Veja o{' '}
         <a href={`${SITE.repo}#adicionar-um-novo-conjunto-de-dados`} rel="noopener">guia no repositório</a>.
+        O projeto é criado e mantido por <a href={url('/autor/')}>{AUTHOR.name}</a>.
       </p>
     </section>
 

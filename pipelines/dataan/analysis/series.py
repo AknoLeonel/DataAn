@@ -28,9 +28,10 @@ def lttb(y: np.ndarray, n_out: int) -> np.ndarray:
     bucket = (n - 2) / (n_out - 2)
     a = 0
     for i in range(n_out - 2):
-        start = int(math.floor((i + 1) * bucket)) + 1
-        end = min(int(math.floor((i + 2) * bucket)) + 1, n)
-        nxt_start, nxt_end = end, min(int(math.floor((i + 3) * bucket)) + 1, n)
+        # Balde i cobre os pontos do meio [start, end); a primeira e a última ficam fixas.
+        start = int(math.floor(i * bucket)) + 1
+        end = int(math.floor((i + 1) * bucket)) + 1
+        nxt_start, nxt_end = end, min(int(math.floor((i + 2) * bucket)) + 1, n)
         if nxt_start >= nxt_end:
             avg_x, avg_y = x[-1], y[-1]
         else:

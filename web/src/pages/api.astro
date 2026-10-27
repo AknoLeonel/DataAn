@@ -1,7 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 import { getCatalog } from '../lib/data';
-import { absolute, url } from '../lib/site';
+import { API_NOTEBOOK, absolute, colabUrl, url } from '../lib/site';
 
 const catalog = getCatalog();
 const example = catalog?.datasets[0]?.slug ?? 'selic';
@@ -23,6 +24,7 @@ const endpoints = [
         Tudo o que você vê no site está disponível como arquivos estáticos em JSON e CSV. Sem cadastro, sem chave e
         sem limite de uso, servidos por CDN. Atualizados uma vez por dia.
       </p>
+      <p><a class="btn btn-ghost" href={colabUrl(API_NOTEBOOK)} rel="noopener"><Icon name="code" /> Tutorial no Colab: do catálogo à análise</a></p>
     </header>
 
     <section class="card" aria-labelledby="endpoints">
