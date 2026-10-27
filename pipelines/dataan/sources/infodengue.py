@@ -7,6 +7,8 @@ de casos corrigida pelo atraso de notificação (nowcasting: `casos_est`).
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 import pandas as pd
 
 from dataan import http
@@ -25,10 +27,23 @@ COLUMNS = [
     "p_inc100k",
     "Rt",
     "pop",
+    # Clima da semana (estações do INMET agregadas pelo InfoDengue)
+    "tempmin",
+    "tempmed",
+    "tempmax",
+    "umidmin",
+    "umidmed",
+    "umidmax",
 ]
 
 
 def alertcity(geocode: int, disease: str, year_start: int, year_end: int) -> pd.DataFrame:
+    """Uma linha por semana epidemiológica, ordenada. Cópia: o resultado é cacheado."""
+    return _alertcity(geocode, disease, year_start, year_end).copy()
+
+
+@lru_cache(maxsize=32)
+def _alertcity(geocode: int, disease: str, year_start: int, year_end: int) -> pd.DataFrame:
     data = http.get_json(
         URL,
         params={

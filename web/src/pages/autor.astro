@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { getCatalog, getStatus } from '../lib/data';
+import { AUTHOR, NOTEBOOKS, SITE, absolute, colabUrl, url } from '../lib/site';
+
+const catalog = getCatalog();
+const status = getStatus();
+const datasets = catalog?.datasets.length ?? 0;
+const sources = new Set((catalog?.datasets ?? []).flatMap((e) => e.sources.map((s) => s.split(' — ')[0].split(' (')[0]))).size;
+const ok = (status?.datasets ?? []).filter((d) => d.ok).length;
+const total = status?.datasets.length ?? 0;
+const hasStudy = Boolean(catalog?.datasets.some((e) => e.slug === 'estudo-dengue-clima'));
+
+// O que o projeto demonstra, cada item com a prova clicável.
+const evidence = [
+  {
+    title: 'Ciência de dados com validação honesta',
+    text: 'Previsões só são publicadas com teste fora da amostra (origem móvel) contra uma referência ingênua, com critério definido antes de ver os dados, inclusive quando o modelo perde.',
+    links: [
+      ...(hasStudy ? [{ href: url('/dados/estudo-dengue-clima/'), label: 'Estudo: o clima ajuda a prever a dengue?' }] : []),
+      { href: colabUrl(NOTEBOOKS['estudo-dengue-clima']), label: 'Notebook no Colab', external: true },
+    ],
+  },
+  {
+    title: 'Engenharia de dados em produção',
+    text: 'Pipeline Python que coleta APIs oficiais todo dia com retentativa, servidor alternativo, contrato de dados (pydantic) e fallback para a última versão válida. A saúde de cada fonte é pública.',
+    links: [
+      { href: url('/status/'), label: 'Status do pipeline' },
+      { href: `${SITE.repo}/tree/main/pipelines`, label: 'Código do pipeline', external: true },
+    ],
+  },
+  {
+    title: 'Visualização e comunicação',
+    text: 'Gráficos SVG próprios, com tabela equivalente, foco nos trechos que importam e textos de leitura gerados a partir dos números, para quem não é da área entender em segundos.',
+    links: [
+      { href: url('/dados/ipca/'), label: 'Inflação frente à meta' },
+      { href: url('/dados/dengue-capitais/'), label: 'Dengue com previsão' },
+    ],
+  },
+  {
+    title: 'Produto aberto e seguro',
+    text: 'Site estático na Vercel, API JSON/CSV sem chave, SEO com dados estruturados, CSP restrita sem scripts inline, mobile-first e acessível por teclado.',
+    links: [
+      { href: url('/api/'), label: 'API de dados abertos' },
+      { href: `${SITE.repo}#readme`, label: 'Arquitetura no README', external: true },
+    ],
+  },
+];
+
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  mainEntity: {
+    '@type': 'Person',
+    name: AUTHOR.name,
+    jobTitle: AUTHOR.role,
+    url: absolute('/autor/'),
+    sameAs: [AUTHOR.linkedin, AUTHOR.github, AUTHOR.portfolio],
+    knowsAbout: ['Ciência de dados', 'Séries temporais', 'Engenharia de dados', 'Visualização de dados', 'Python'],
+  },
+};
+---
+<Base
+  title={`Quem fez: ${AUTHOR.name}`}
+  description={`${AUTHOR.name}, ${AUTHOR.role.toLowerCase()}, criou e mantém o ${SITE.name}: pipeline, análises, previsões validadas e o site.`}
+  jsonld={[person]}
+>
+  <div class="container page-flow">
+    <nav class="crumbs" aria-label="Trilha de navegação">
+      <ol><li><a href={url('/')}>Início</a></li><li aria-current="page">Quem fez</li></ol>
+    </nav>
+
+    <header class="author-hero reveal">
+      <p class="eyebrow">Quem fez</p>
+      <h1>{AUTHOR.name}</h1>
+      <p class="lead muted">
+        {AUTHOR.role}. Criei e mantenho o {SITE.name} de ponta a ponta: da coleta nas APIs do governo à previsão
+        validada e ao gráfico que qualquer pessoa entende.
+      </p>
+      <div class="author-links">
+        <a class="btn btn-primary" href={AUTHOR.linkedin} rel="noopener me"><Icon name="external" /> LinkedIn</a>
+        <a class="btn btn-ghost" href={AUTHOR.github} rel="noopener me"><Icon name="github" /> GitHub</a>
+        <a class="btn btn-ghost" href={AUTHOR.portfolio} rel="noopener me"><Icon name="external" /> Portfólio</a>
+      </div>
+    </header>
+
+    <section class="author-stats card reveal" aria-label="O projeto em números">
+      <div><span class="stat-num">{datasets}</span><span class="small muted">conjuntos de dados no ar</span></div>
+      <div><span class="stat-num">{sources}</span><span class="small muted">fontes oficiais</span></div>
+      <div><span class="stat-num">{total ? `${ok}/${total}` : '—'}</span><span class="small muted">fontes ok na última coleta</span></div>
+      <div><span class="stat-num">1×</span><span class="small muted">atualização automática por dia</span></div>
+    </section>
+
+    <section aria-labelledby="demonstra">
+      <div class="section-head"><h2 id="demonstra">O que este projeto demonstra</h2></div>
+      <div class="grid grid-2 stagger">
+        {evidence.map((e) => (
+          <article class="card evidence reveal">
+            <h3>{e.title}</h3>
+            <p class="muted">{e.text}</p>
+            <ul class="evidence-links">
+              {e.links.map((l) => (
+                <li><a href={l.href} rel={'external' in l && l.external ? 'noopener' : undefined}>{l.label} <Icon name="arrowRight" /></a></li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="card prose reveal" aria-labelledby="contato">
+      <h2 id="contato">Vamos conversar</h2>
+      <p>
+        Estou aberto a oportunidades como cientista de dados. O jeito mais rápido de falar comigo é pelo{' '}
+        <a href={AUTHOR.linkedin} rel="noopener">LinkedIn</a>. Sugestões de dados e problemas no site são bem-vindos como{' '}
+        <a href={`${SITE.repo}/issues`} rel="noopener">issue no GitHub</a>.
+      </p>
+    </section>
+  </div>
+</Base>

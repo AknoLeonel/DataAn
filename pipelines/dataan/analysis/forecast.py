@@ -93,8 +93,8 @@ def holt_forecast(
     lo = np.array([np.quantile(errors_log[h], q_lo) for h in range(horizon)])
     hi = np.array([np.quantile(errors_log[h], q_hi) for h in range(horizon)])
 
-    freq = pd.infer_freq(s.index[-8:]) or "7D"
-    idx = pd.date_range(s.index[-1], periods=horizon + 1, freq=freq)[1:]
+    step = pd.Series(s.index[-8:]).diff().median()  # passo regular da série (ex.: 7 dias)
+    idx = pd.date_range(s.index[-1] + step, periods=horizon, freq=step)
     mae = float(np.mean(abs_err))
     mae_naive = float(np.mean(abs_err_naive))
     return Forecast(

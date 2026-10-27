@@ -7,6 +7,8 @@ import sitemap from '@astrojs/sitemap';
 const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
 const site = process.env.SITE_URL || (vercelProd ? `https://${vercelProd}` : 'http://localhost:4321');
 const base = process.env.BASE_PATH || '/';
+// Vercel Web Analytics: contagens agregadas, sem cookies. Só no build da Vercel (desligável com DATAAN_ANALYTICS=0).
+const analytics = process.env.VERCEL === '1' && process.env.DATAAN_ANALYTICS !== '0';
 
 export default defineConfig({
   site,
@@ -32,6 +34,7 @@ export default defineConfig({
       ],
     },
   },
+  vite: { define: { __DATAAN_ANALYTICS__: JSON.stringify(analytics) } },
   markdown: { syntaxHighlight: false },
   devToolbar: { enabled: false },
 });

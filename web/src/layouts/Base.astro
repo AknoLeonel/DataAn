@@ -3,7 +3,7 @@ import '@fontsource-variable/geist';
 import '@fontsource-variable/geist-mono';
 import '../styles/global.css';
 import Icon from '../components/Icon.astro';
-import { SITE, absolute, url } from '../lib/site';
+import { AUTHOR, SITE, absolute, url } from '../lib/site';
 
 interface Props {
   title?: string;
@@ -25,6 +25,7 @@ const nav = [
   { href: url('/api/'), label: 'API' },
   { href: url('/status/'), label: 'Status' },
   { href: url('/sobre/'), label: 'Sobre' },
+  { href: url('/autor/'), label: 'Quem fez' },
 ];
 const isCurrent = (href: string) => (href === url('/') ? path === href : path.startsWith(href));
 
@@ -36,6 +37,7 @@ const siteLd = {
   url: absolute('/'),
   inLanguage: 'pt-BR',
   publisher: { '@type': 'Organization', name: SITE.name, url: absolute('/'), sameAs: [SITE.repo] },
+  author: { '@type': 'Person', name: AUTHOR.name, url: absolute('/autor/'), sameAs: [AUTHOR.linkedin, AUTHOR.github, AUTHOR.portfolio] },
 };
 const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u003c'));
 ---
@@ -87,6 +89,7 @@ const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u00
       })();
     </script>
     {ld.map((json) => <script type="application/ld+json" set:html={json} />)}
+    {__DATAAN_ANALYTICS__ && <script is:inline defer src="/_vercel/insights/script.js"></script>}
   </head>
   <body>
     <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -139,6 +142,15 @@ const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u00
             <li><a href={url('/sobre/')}>Sobre e metodologia</a></li>
             <li><a href={SITE.repo} rel="noopener">Código no GitHub</a></li>
             <li><a href={url('/sitemap-index.xml')}>Mapa do site</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Quem fez</h2>
+          <ul>
+            <li><a href={url('/autor/')}>{AUTHOR.name}</a></li>
+            <li><a href={AUTHOR.linkedin} rel="noopener me">LinkedIn</a></li>
+            <li><a href={AUTHOR.github} rel="noopener me">GitHub</a></li>
+            <li><a href={AUTHOR.portfolio} rel="noopener me">Portfólio</a></li>
           </ul>
         </div>
       </div>

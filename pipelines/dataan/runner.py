@@ -34,6 +34,42 @@ from dataan.registry import CATEGORIES, REGISTRY, DatasetSpec
 
 log = logging.getLogger(__name__)
 HISTORY_SIZE = 60
+# Cópias versionadas no repositório: último recurso quando a fonte falha e ainda não
+# existe versão publicada (ex.: dado anual de uma fonte que bloqueia acessos de fora).
+# Instalado como pacote (build), o caminho vem de DATAAN_SNAPSHOT_DIR.
+SNAPSHOT_DIR = Path(
+    os.environ.get("DATAAN_SNAPSHOT_DIR") or Path(__file__).resolve().parents[1] / "snapshots"
+)
+
+
+def restore_snapshot(slug: str, out_dir: Path, snapshot_dir: Path | None = None) -> Dataset | None:
+    """Copia a cópia versionada de `slug` para a saída, se existir e for válida."""
+    snapshot_dir = snapshot_dir or SNAPSHOT_DIR
+    src = snapshot_dir / f"{slug}.json"
+    if not src.exists():
+        return None
+    ds = _load(src, Dataset)
+    if ds is None:
+        return None
+    _write(out_dir / "datasets" / f"{slug}.json", src.read_text(encoding="utf-8"))
+    csv = snapshot_dir / f"{slug}.csv"
+    if csv.exists():
+        _write(out_dir / "csv" / f"{slug}.csv", csv.read_text(encoding="utf-8"))
+    log.warning("Usando a cópia versionada de %s (dados até %s)", slug, ds.data_until)
+    return ds
+
+
+def save_snapshot(slug: str, out_dir: Path, snapshot_dir: Path | None = None) -> Path:
+    """Guarda a versão gerada de `slug` como cópia versionada (para commitar)."""
+    snapshot_dir = snapshot_dir or SNAPSHOT_DIR
+    src = out_dir / "datasets" / f"{slug}.json"
+    if _load(src, Dataset) is None:
+        raise SystemExit(f"Não há versão válida de {slug} em {out_dir}; rode o pipeline antes.")
+    _write(snapshot_dir / f"{slug}.json", src.read_text(encoding="utf-8"))
+    csv = out_dir / "csv" / f"{slug}.csv"
+    if csv.exists():
+        _write(snapshot_dir / f"{slug}.csv", csv.read_text(encoding="utf-8"))
+    return snapshot_dir / f"{slug}.json"
 
 
 def _write(path: Path, content: str) -> None:
@@ -212,6 +248,8 @@ def run(
         except Exception as exc:  # isolamento: qualquer erro fica restrito ao dataset
             log.exception("✘ %s", spec.slug)
             old = _load(target, Dataset) if target.exists() else None
+            if old is None:
+                old = restore_snapshot(spec.slug, out_dir)
             results[spec.slug] = DatasetStatus(
                 slug=spec.slug,
                 title=spec.title,

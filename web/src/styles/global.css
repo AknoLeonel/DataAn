@@ -1151,7 +1151,7 @@ tbody tr:last-child td {
 }
 @media (min-width: 720px) {
   .site-footer .cols {
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
   }
 }
 .site-footer h2 {
@@ -1660,3 +1660,27 @@ html.motion .reveal.is-in .status-ring .ok { animation: ring-in 1.4s var(--ease-
 .flow-steps .stat { margin-top: auto; padding-top: 12px; }
 .flow-connector { align-self: center; }
 .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important; }
+
+/* ---------- Quem fez + estudo de caso ---------- */
+.author-hero h1 { margin: 6px 0 10px; }
+.author-hero .lead { max-width: 62ch; }
+.author-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.author-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.author-stats > div { display: flex; flex-direction: column; gap: 4px; }
+.stat-num { font-size: 1.75rem; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+@media (min-width: 720px) { .author-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.evidence { display: flex; flex-direction: column; gap: 10px; }
+.evidence h3 { margin: 0; }
+.evidence p { margin: 0; }
+.evidence-links { list-style: none; padding: 0; margin: auto 0 0; display: grid; gap: 6px; }
+.evidence-links a { display: inline-flex; align-items: center; gap: 6px; font-weight: 550; }
+.evidence-links svg { width: 14px; height: 14px; }
+.study-callout { display: grid; gap: 24px; padding: 28px; }
+.study-callout h2 { margin: 8px 0 8px; font-size: clamp(1.375rem, 1.1rem + 1.2vw, 1.875rem); letter-spacing: -0.02em; }
+.study-callout .study-text p.muted { max-width: 60ch; margin: 0; }
+.study-kpis { display: grid; gap: 12px; margin: 0; align-content: center; }
+.study-kpis > div { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; background: var(--surface-2, var(--surface)); }
+.study-kpis dt { font-size: 0.8125rem; color: var(--ink-2); }
+.study-kpis dd { margin: 2px 0 0; font-size: 1.375rem; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+@media (min-width: 900px) { .study-callout { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: center; } }
+.notebook-line { margin: 12px 0 0; color: var(--ink-2); }

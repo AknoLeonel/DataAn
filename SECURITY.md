@@ -9,7 +9,7 @@ Não abra issue pública. Use **Security → Report a vulnerability** neste repo
 
 | Superfície | Defesa |
 |---|---|
-| Site | Estático, sem backend, sem formulários, sem cookies. CSP restrita com hashes gerados pelo Astro (`script-src 'self'`, sem `unsafe-inline`), `object-src 'none'`, `base-uri 'self'`. |
+| Site | Estático, sem backend, sem formulários, sem cookies. Contagem de visitas agregada e sem cookies (Vercel Web Analytics, mesmo domínio, só no build da Vercel; desligável com `DATAAN_ANALYTICS=0`). CSP restrita com hashes gerados pelo Astro (`script-src 'self'`, sem `unsafe-inline`), `object-src 'none'`, `base-uri 'self'`. |
 | Conteúdo vindo das fontes | Todo texto de dados é escapado no SVG e inserido com `textContent` no navegador (nunca `innerHTML` com dado bruto). JSON embutido tem `<` escapado. |
 | Pipeline | Dados validados por contrato (Pydantic, `extra="forbid"`) antes de publicar; slugs restritos a `[a-z0-9-]` (sem path traversal); limite de tamanho de resposta e timeouts. |
 | Supply chain | Dependências com faixas de versão, `package-lock.json` versionado, Dependabot semanal para pip, npm e Actions. |

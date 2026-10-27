@@ -6,7 +6,7 @@ import Icon from '../components/Icon.astro';
 import { getCatalog, getDataset, getStatus } from '../lib/data';
 import { formatDateTime, formatValue } from '../lib/format';
 import { sparkline, minibars } from '../lib/charts/sparkline';
-import { SITE, url } from '../lib/site';
+import { NOTEBOOKS, SITE, colabUrl, url } from '../lib/site';
 import { explainError, health } from '../lib/status';
 import type { LineChart } from '../lib/types';
 
@@ -60,6 +60,10 @@ if (bySlug.has('ipca')) {
     featureUntil = ds.data_until ?? '';
   }
 }
+
+// Estudo de caso em destaque (pergunta, resposta atual e os números que a sustentam).
+const study = bySlug.has('estudo-dengue-clima') ? getDataset('estudo-dengue-clima') : null;
+const studyQuestion = study ? study.title.replace(/^Estudo:\s*/, '').replace(/^./, (c) => c.toUpperCase()) : '';
 
 // Conjuntos sem nenhuma versão publicada ainda (a fonte falhou desde o início).
 const unavailable = (status?.datasets ?? []).filter((d) => !d.ok && !bySlug.has(d.slug));
@@ -134,9 +138,28 @@ const unavailable = (status?.datasets ?? []).filter((d) => !d.ok && !bySlug.has(
         <p class="eyebrow"><span class="tag cat-economia">Em destaque · Economia</span></p>
         <Chart chart={feature} table={false} />
         <p class="source-line">
-          Fonte: Banco Central (SGS 13522) e metas do CMN · dados até {featureUntil} ·
+          Fonte: Banco Central (SGS 13522) e metas do CMN · dados até {featureUntil}{' · '}
           <a href={url('/dados/ipca/')}>ver a página completa</a>
         </p>
+      </section>
+    )}
+
+    {study && (
+      <section class="card study-callout reveal" aria-labelledby="estudo-titulo">
+        <div class="study-text">
+          <p class="eyebrow"><span class="tag cat-saude">Estudo de caso · Saúde</span></p>
+          <h2 id="estudo-titulo">{studyQuestion}</h2>
+          <p class="muted">{study.insights[0]}</p>
+          <div class="author-links">
+            <a class="btn btn-primary" href={url('/dados/estudo-dengue-clima/')}>Ver o estudo <Icon name="arrowRight" /></a>
+            <a class="btn btn-ghost" href={colabUrl(NOTEBOOKS['estudo-dengue-clima'])} rel="noopener"><Icon name="code" /> Notebook no Colab</a>
+          </div>
+        </div>
+        <dl class="study-kpis">
+          {study.kpis.map((k) => (
+            <div><dt>{k.label}</dt><dd>{formatValue(k.value, k.format)}</dd></div>
+          ))}
+        </dl>
       </section>
     )}
 

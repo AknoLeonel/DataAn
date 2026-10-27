@@ -27,7 +27,7 @@ elif [[ -n "${VERCEL_PROJECT_PRODUCTION_URL:-}" ]]; then
   SEED_ARGS=(--seed-from "https://${VERCEL_PROJECT_PRODUCTION_URL}/data")
 fi
 
-"${VENV}/bin/python" -m dataan run --out "${REPO}/web/public/data" ${SEED_ARGS[@]+"${SEED_ARGS[@]}"}
+DATAAN_SNAPSHOT_DIR="${REPO}/pipelines/snapshots" "${VENV}/bin/python" -m dataan run --out "${REPO}/web/public/data" ${SEED_ARGS[@]+"${SEED_ARGS[@]}"}
 
 cd "${REPO}/web"
 npx astro build
