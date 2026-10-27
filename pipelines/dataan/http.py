@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import random
 import time
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -24,7 +25,15 @@ _client: httpx.Client | None = None
 
 
 class FetchError(RuntimeError):
-    """Falha definitiva ao buscar dados de uma fonte."""
+    """Falha definitiva ao buscar dados de uma fonte. `reason` é a causa curta (sem a URL)."""
+
+    def __init__(self, message: str, *, reason: str | None = None) -> None:
+        super().__init__(message)
+        self.reason = reason or message
+
+
+class _InvalidPayload(Exception):
+    """Resposta 200 cujo corpo não tem o formato esperado (ex.: objeto de erro)."""
 
 
 def _get_client() -> httpx.Client:
@@ -45,8 +54,14 @@ def get_json(
     retries: int = 4,
     backoff: float = 2.0,
     not_found_ok: bool = False,
+    validate: Callable[[Any], str | None] | None = None,
 ) -> Any:
-    """GET com retentativas. Retorna o JSON decodificado (ou None em 404 se permitido)."""
+    """GET com retentativas. Retorna o JSON decodificado (ou None em 404 se permitido).
+
+    `validate(dados)` devolve None se o corpo está no formato esperado, ou o problema em texto.
+    APIs públicas às vezes respondem 200 com um objeto de erro; isso é tratado como falha
+    temporária e repetido com o mesmo backoff, para todas as fontes.
+    """
     last_exc: Exception | None = None
     for attempt in range(retries + 1):
         try:
@@ -60,7 +75,13 @@ def get_json(
             resp.raise_for_status()
             if len(resp.content) > MAX_BYTES:
                 raise FetchError(f"Resposta grande demais de {url} ({len(resp.content)} bytes)")
-            return resp.json()
+            data = resp.json()
+            problem = validate(data) if validate is not None else None
+            if problem:
+                raise _InvalidPayload(f"resposta inesperada: {problem}")
+            return data
+        except _InvalidPayload as exc:
+            last_exc = exc
         except httpx.HTTPStatusError as exc:
             last_exc = exc
             if exc.response.status_code not in RETRY_STATUS:
@@ -71,7 +92,9 @@ def get_json(
             wait = backoff * (2**attempt) + random.uniform(0, 1)  # noqa: S311 - jitter, não é cripto
             log.warning("Falha em %s (%s). Nova tentativa em %.1fs", url, last_exc, wait)
             time.sleep(wait)
-    raise FetchError(f"Não foi possível obter {url}: {last_exc}") from last_exc
+    raise FetchError(
+        f"Não foi possível obter {url}: {last_exc}", reason=str(last_exc)
+    ) from last_exc
 
 
 def get_text(url: str, *, timeout: float = 20.0) -> str | None:

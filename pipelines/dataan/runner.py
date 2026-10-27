@@ -217,7 +217,7 @@ def run(
                 title=spec.title,
                 ok=False,
                 stale=old is not None,
-                error=f"{type(exc).__name__}: {str(exc)[:300]}",
+                error=f"{type(exc).__name__}: {str(exc)[:600]}",
                 duration_s=round(time.perf_counter() - t0, 2),
                 rows=old.rows if old else 0,
                 updated_at=old.updated_at if old else None,
