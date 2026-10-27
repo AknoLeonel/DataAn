@@ -5,7 +5,7 @@ import { barPath, esc, linear, nice, r1, svgOpen, textWidth, type Rendered } fro
 
 const NARROW = 520;
 
-export function renderBar(spec: BarChart, width: number): Rendered {
+export function renderBar(spec: BarChart, width: number, animate = false): Rendered {
   const narrow = width < NARROW;
   const items = spec.items;
   const anyHighlight = items.some((i) => i.highlight);
@@ -47,7 +47,7 @@ export function renderBar(spec: BarChart, width: number): Rendered {
     } else {
       parts.push(`<text class="cat" x="${r1(labelW - 10)}" y="${r1(barY + barH / 2)}" dy="0.32em" text-anchor="end">${esc(it.label)}</text>`);
     }
-    parts.push(`<path class="bar ${cls}" data-i="${i}" d="${barPath(left, barY, Math.max(w, 1), barH, it.value >= 0 ? 'right' : 'left')}"/>`);
+    parts.push(`<path class="bar h ${cls}${it.value < 0 ? ' rev' : ''}" data-i="${i}" d="${barPath(left, barY, Math.max(w, 1), barH, it.value >= 0 ? 'right' : 'left')}"/>`);
     const tipX = it.value >= 0 ? xv + 6 : xv - 6;
     parts.push(`<text class="value" x="${r1(tipX)}" y="${r1(barY + barH / 2)}" dy="0.32em" text-anchor="${it.value >= 0 ? 'start' : 'end'}">${esc(valueLabels[i])}</text>`);
     bands.push({ from: rowTop, to: rowTop + rowH, anchorX: xv, anchorY: barY });
@@ -62,7 +62,7 @@ export function renderBar(spec: BarChart, width: number): Rendered {
   const first = items[0];
   const aria = `${spec.title}. Gráfico de barras com ${items.length} itens; maior: ${first.label}, ${formatValue(first.value, spec.format)}.`;
   return {
-    svg: svgOpen(width, height, aria) + parts.join('') + '</svg>',
+    svg: svgOpen(width, height, aria, animate) + parts.join('') + '</svg>',
     height,
     interaction: {
       kind: 'band',

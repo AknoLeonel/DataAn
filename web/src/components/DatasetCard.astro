@@ -1,7 +1,7 @@
 ---
 import { formatValue } from '../lib/format';
 import { categoryName } from '../lib/data';
-import { sparkline } from '../lib/charts/sparkline';
+import { minibars, sparkline } from '../lib/charts/sparkline';
 import { url } from '../lib/site';
 import type { CatalogEntry } from '../lib/types';
 import Icon from './Icon.astro';
@@ -16,11 +16,15 @@ const k = entry.headline;
 const search = [entry.title, entry.summary, categoryName(entry.category), ...entry.tags, ...entry.sources]
   .join(' ')
   .normalize('NFD')
-  .replace(/[̀-ͯ]/g, '')
+  .replace(/[\u0300-\u036f]/g, '')
   .toLowerCase();
-const spark = k?.spark?.length ? sparkline(k.spark, `Tendência de ${k.label}`, 96, 30) : '';
+const spark = k?.spark?.length
+  ? k.spark_kind === 'bars'
+    ? minibars(k.spark, `Últimos períodos de ${k.label}`, 96, 30)
+    : sparkline(k.spark, `Tendência de ${k.label}`, 96, 30)
+  : '';
 ---
-<article class="card ds-card" data-card data-category={entry.category} data-search={search}>
+<article class="card ds-card reveal" data-card data-category={entry.category} data-search={search}>
   <a class:list={['tag', `cat-${entry.category}`]} href={url(`/categorias/${entry.category}/`)}>{categoryName(entry.category)}</a>
   <H><a href={url(`/dados/${entry.slug}/`)}>{entry.title}</a></H>
   <p>{entry.summary}</p>
@@ -28,7 +32,7 @@ const spark = k?.spark?.length ? sparkline(k.spark, `Tendência de ${k.label}`, 
     <div class="headline">
       <div class="kpi">
         <span class="kpi-label">{k.label}</span>
-        <span class="kpi-value">{formatValue(k.value, k.format, { unit: false })}{k.format.unit && <span class="unit">{k.format.unit}</span>}</span>
+        <span class="kpi-value"><span class="kpi-num" data-countup={k.format.grouping === false ? undefined : JSON.stringify({ v: k.value, f: k.format })}>{formatValue(k.value, k.format, { unit: false })}</span>{k.format.unit && <span class="unit">{k.format.unit}</span>}</span>
       </div>
       {spark && <Fragment set:html={spark} />}
     </div>

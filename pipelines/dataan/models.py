@@ -52,6 +52,13 @@ class Series(_Model):
     color: int = Field(default=1, ge=1, le=8)
 
 
+class Badge(_Model):
+    """Selo de situação (sempre com ícone + texto no site)."""
+
+    status: StatusLevel
+    label: str
+
+
 class LineChart(_Model):
     type: Literal["line"] = "line"
     id: Slug
@@ -64,6 +71,7 @@ class LineChart(_Model):
     y_zero: bool = False
     reference: list[RefLine] = Field(default_factory=list)
     marker: tuple[str, str] | None = None  # (x, rótulo), ex.: início da previsão
+    badge: Badge | None = None
     note: str | None = None
 
 
@@ -128,17 +136,45 @@ class Delta(_Model):
     _r = field_validator("value")(_round)
 
 
+class KpiRange(_Model):
+    """Régua de contexto: onde o valor cai entre `min` e `max`, com faixa e/ou marca de referência."""
+
+    min: float
+    max: float
+    lo: float | None = None  # faixa de referência (ex.: piso e teto da meta)
+    hi: float | None = None
+    mark: float | None = None  # marca única (ex.: centro da meta, diretriz da OMS)
+    label: str | None = None  # nome da referência ("meta", "OMS")
+
+
 class Kpi(_Model):
     label: str
     value: float
     format: Fmt
     delta: Delta | None = None
     spark: list[float] | None = None
+    spark_kind: Literal["line", "bars"] = "line"
     as_of: str | None = None
     status: StatusLevel | None = None
     status_label: str | None = None
+    range: KpiRange | None = None
+    # Uma marca por período (ex.: mês acima do teto = True), com rótulo curto e legenda.
+    dots: list[bool] | None = None
+    dot_labels: list[str] | None = None
+    dot_legend: tuple[str, str] | None = None
 
     _r = field_validator("value")(_round)
+
+
+class Highlight(_Model):
+    """Destaque em texto ligado a um trecho de um gráfico de linha da mesma página."""
+
+    text: str
+    chart: Slug
+    start: str
+    end: str
+    at: str
+    label: str
 
 
 class ModelInfo(_Model):
@@ -173,6 +209,7 @@ class Dataset(_Model):
     kpis: list[Kpi] = Field(default_factory=list)
     charts: list[Chart] = Field(min_length=1)
     insights: list[str] = Field(default_factory=list)
+    highlights: list[Highlight] = Field(default_factory=list)
     methodology: list[str] = Field(default_factory=list)
     model: ModelInfo | None = None
     columns: list[Column] = Field(default_factory=list)

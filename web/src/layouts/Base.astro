@@ -1,4 +1,6 @@
 ---
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 import '../styles/global.css';
 import Icon from '../components/Icon.astro';
 import { SITE, absolute, url } from '../lib/site';
@@ -47,9 +49,8 @@ const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u00
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0a0d12" />
     <meta name="generator" content={Astro.generator} />
 
     <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
@@ -78,6 +79,7 @@ const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u00
       (function () {
         var d = document.documentElement;
         d.classList.add('js');
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('motion');
         try {
           var t = localStorage.getItem('dataan-theme');
           if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
@@ -143,6 +145,7 @@ const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u00
     </footer>
     <script>
       import '../scripts/theme';
+      import '../scripts/motion';
     </script>
   </body>
 </html>

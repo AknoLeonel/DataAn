@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DataAn — Sistema de motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0A0D12}
+@keyframes bar{0%{transform:scaleX(0)}45%,100%{transform:scaleX(1)}}
+@keyframes travel{0%,10%{transform:translateX(0)}50%,60%{transform:translateX(236px)}100%{transform:translateX(0)}}
+@keyframes drawloop{0%{stroke-dashoffset:1}55%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes riseloop{0%{opacity:0;transform:translateY(12px)}25%,85%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes ring{0%{r:6;opacity:.6}100%{r:20;opacity:0}}
+.bar{transform-origin:left center;animation:bar 2.4s infinite both}
+.travel-out{animation:travel 2.6s cubic-bezier(.22,1,.36,1) infinite both}
+.travel-data{animation:travel 2.6s cubic-bezier(.65,0,.35,1) infinite both}
+.drawloop{stroke-dasharray:1;animation:drawloop 3.2s cubic-bezier(.65,0,.35,1) infinite both}
+.riseloop{animation:riseloop 3.2s cubic-bezier(.22,1,.36,1) infinite both}
+.ring{animation:ring 1.8s ease-out infinite}
+.morph{transition:d .7s cubic-bezier(.22,1,.36,1)}
+.no-motion *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="{{ rootClass }}" style="width: 1440px; height: 900px; box-sizing: border-box; padding: 56px; background: #0A0D12; color: #EEF2F6; font-family: 'Geist', system-ui, sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+    <div>
+      <div style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #8DBBF2">DataAn · motion</div>
+      <h1 style="margin: 6px 0 0; font-size: 44px; letter-spacing: -0.03em; line-height: 1.1">O movimento mostra o que mudou nos dados</h1>
+    </div>
+    <div style="font-size: 14px; color: #A9B4C0; max-width: 360px; text-align: right">Com “reduzir movimento” ativado no sistema, tudo aparece direto no estado final.</div>
+  </div>
+
+  <div style="flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 20px">
+
+    <section style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 18px">Durações</h2>
+      <sc-for list="{{ durations }}" as="d" hint-placeholder-count="5">
+        <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: 12px">
+          <div>
+            <div style="font-family: 'Geist Mono', monospace; font-size: 13px">{{ d.ms }}</div>
+            <div style="font-size: 12px; color: #8C97A5">{{ d.use }}</div>
+          </div>
+          <div style="height: 10px; border-radius: 5px; background: #18202A; overflow: hidden">
+            <div class="bar" style="height: 10px; border-radius: 5px; background: #3987E5; animation-duration: {{ d.loop }}"></div>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 18px">
+      <h2 style="margin: 0; font-size: 18px">Curvas</h2>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span>Entrada e interface</span><span style="font-family: 'Geist Mono', monospace; color: #8C97A5">cubic-bezier(.22,1,.36,1)</span></div>
+        <div style="position: relative; height: 28px; margin-top: 8px; border-radius: 14px; background: #18202A">
+          <span class="travel-out" style="position: absolute; left: 4px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: #3987E5"></span>
+        </div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span>Desenho de dados</span><span style="font-family: 'Geist Mono', monospace; color: #8C97A5">cubic-bezier(.65,0,.35,1)</span></div>
+        <div style="position: relative; height: 28px; margin-top: 8px; border-radius: 14px; background: #18202A">
+          <span class="travel-data" style="position: absolute; left: 4px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: #199E70"></span>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #A9B4C0">Interface reage rápido e assenta devagar; linhas e barras aceleram e freiam juntas, como uma leitura.</p>
+    </section>
+
+    <section style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 18px">Contagem até o valor</h2>
+      <div style="font-size: 13px; color: #A9B4C0">900 ms, só no primeiro carregamento do indicador</div>
+      <div style="margin-top: auto; font-size: 64px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1">{{ count }}<span style="font-size: 22px; font-weight: 500; color: #A9B4C0; margin-left: 6px">% a.a.</span></div>
+      <div style="font-size: 13px; color: #8C97A5">Valor de exemplo</div>
+    </section>
+
+    <section style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 18px">Linha que se desenha</h2>
+      <div style="font-size: 13px; color: #A9B4C0">1,2–1,4 s · o ponto final pulsa quando o dado é de hoje</div>
+      <svg viewBox="0 0 380 150" width="100%" aria-hidden="true" style="margin-top: auto; overflow: visible">
+        <line x1="0" x2="380" y1="140" y2="140" stroke="rgba(255,255,255,0.1)"></line>
+        <path class="drawloop" pathLength="1" d="M0,120 L40,112 L80,118 L120,96 L160,100 L200,74 L240,82 L280,52 L320,58 L366,30" fill="none" stroke="#3987E5" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+        <circle cx="366" cy="30" r="6" fill="#3987E5" class="ring"></circle>
+        <circle cx="366" cy="30" r="5" fill="#3987E5" stroke="#11161D" stroke-width="2.5"></circle>
+      </svg>
+    </section>
+
+    <section style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 18px">Trocar o período sem perder o contexto</h2>
+      <div style="font-size: 13px; color: #A9B4C0">700 ms · a curva se transforma em vez de piscar</div>
+      <svg viewBox="0 0 380 150" width="100%" aria-hidden="true" style="margin-top: auto; overflow: visible">
+        <path class="morph" d="{{ morphBand }}" style="d: path('{{ morphBand }}')" fill="rgba(25,158,112,0.18)"></path>
+        <path class="morph" d="{{ morphLine }}" style="d: path('{{ morphLine }}')" fill="none" stroke="#3987E5" stroke-width="2.5" stroke-linejoin="round"></path>
+      </svg>
+      <div style="display: flex; gap: 6px">
+        <span style="padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{ pillA.bg }}; color: {{ pillA.fg }}">5A</span>
+        <span style="padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{ pillB.bg }}; color: {{ pillB.fg }}">10A</span>
+      </div>
+    </section>
+
+    <section style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 18px">Entrada em cascata</h2>
+      <div style="font-size: 13px; color: #A9B4C0">700 ms por item, atraso de 60 ms entre eles</div>
+      <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px">
+        <sc-for list="{{ stagger }}" as="s" hint-placeholder-count="4">
+          <div class="riseloop" style="height: 34px; border-radius: 10px; background: #18202A; display: flex; align-items: center; gap: 10px; padding: 0 12px; animation-delay: {{ s.delay }}">
+            <span style="width: 8px; height: 8px; border-radius: 2px; background: {{ s.color }}"></span>
+            <span style="font-size: 13px">{{ s.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"animate":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { t: 1, wide: false };
+  }
+  componentDidMount() {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || this.props.animate === false) return;
+    var self = this;
+    var run = function () {
+      var start = performance.now();
+      var tick = function (now) {
+        var p = Math.min(1, (now - start) / 900);
+        self.setState({ t: p });
+        if (p < 1) self.raf = requestAnimationFrame(tick);
+      };
+      self.raf = requestAnimationFrame(tick);
+    };
+    run();
+    this.countTimer = setInterval(run, 3200);
+    this.morphTimer = setInterval(function () { self.setState({ wide: !self.state.wide }); }, 2600);
+  }
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    clearInterval(this.countTimer);
+    clearInterval(this.morphTimer);
+  }
+  renderVals() {
+    var ease = 1 - Math.pow(1 - this.state.t, 3);
+    var N = 24, wide = this.state.wide;
+    var line = [], top = [], bottom = [];
+    for (var i = 0; i < N; i++) {
+      var x = i * 380 / (N - 1);
+      var v = wide ? 70 + 40 * Math.sin(i / 3.2) + i * 1.2 : 95 - 22 * Math.sin(i / 2.1) - i * 0.6;
+      line.push((i ? "L" : "M") + x.toFixed(1) + "," + v.toFixed(1));
+      var hi = wide ? 60 + (i < 12 ? 0 : 18) : 72, lo = hi + 40;
+      top.push((i ? "L" : "M") + x.toFixed(1) + "," + hi);
+      bottom.unshift("L" + x.toFixed(1) + "," + lo);
+    }
+    var on = { bg: "#EEF2F6", fg: "#0A0D12" }, off = { bg: "#18202A", fg: "#A9B4C0" };
+    return {
+      rootClass: this.props.animate === false ? "no-motion" : "",
+      durations: [
+        { ms: "120 ms", use: "hover, toque", loop: "1.2s" },
+        { ms: "240 ms", use: "filtros, abas", loop: "1.6s" },
+        { ms: "700 ms", use: "entrada de blocos", loop: "2.4s" },
+        { ms: "900–1400 ms", use: "contagem, desenho", loop: "3.2s" },
+        { ms: "1,8–2,4 s", use: "pulso “ao vivo”", loop: "4s" }
+      ],
+      count: (15 * ease).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      morphLine: line.join(""),
+      morphBand: top.join("") + bottom.join("") + "Z",
+      pillA: wide ? off : on,
+      pillB: wide ? on : off,
+      stagger: [
+        { label: "Taxa Selic e juro real", color: "#3987E5", delay: "0ms" },
+        { label: "Dengue nas capitais", color: "#E66767", delay: "60ms" },
+        { label: "Qualidade do ar", color: "#199E70", delay: "120ms" },
+        { label: "Aquecimento nas capitais", color: "#D95926", delay: "180ms" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

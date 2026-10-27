@@ -1,0 +1,21 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-27T06:10:00Z" },
+  "title": "DataAn — redesign com motion",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 2480, "title": "Início", "expand": "fill", "is_interactive": true },
+    "Dataset.dc.html": { "x": 1520, "y": 0, "w": 1440, "h": 2360, "title": "Página de dados — IPCA", "expand": "fill", "is_interactive": true },
+    "Status.dc.html": { "x": 3040, "y": 0, "w": 1440, "h": 1780, "title": "Status do pipeline (dados reais de 27/10)", "expand": "fill", "is_interactive": true },
+    "Mobile.dc.html": { "x": 0, "y": 2900, "w": 390, "h": 844, "title": "Mobile — Dengue", "is_interactive": true },
+    "Motion.dc.html": { "x": 470, "y": 2900, "w": 1440, "h": 900, "title": "Sistema de motion" }
+  },
+  "order": ["Main.dc.html", "Dataset.dc.html", "Status.dc.html", "Mobile.dc.html", "Motion.dc.html"],
+  "notes": {
+    "row1": { "x": 0, "y": -300, "text": "Telas principais (desktop, adaptam ao celular)", "kind": "title1", "maxW": 4480 },
+    "row2": { "x": 0, "y": 2600, "text": "Mobile e motion", "kind": "title1", "maxW": 1910 },
+    "dados": { "x": -560, "y": 0, "w": 460, "size": "m", "fill": "orange", "text": "Status usa os números reais da execução de 27/10/2026 02:39. Nas outras telas, valores e curvas são exemplos de formato; no site eles vêm do pipeline (datas de “dados até” são as reais)." }
+  },
+  "designSystems": []
+}

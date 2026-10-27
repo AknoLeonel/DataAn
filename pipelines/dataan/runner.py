@@ -123,6 +123,7 @@ def _build_one(spec: DatasetSpec, now: datetime) -> tuple[Dataset, str]:
         kpis=b.kpis,
         charts=b.charts,
         insights=b.insights,
+        highlights=b.highlights,
         methodology=[*spec.methodology, *b.methodology],
         model=b.model,
         columns=list(spec.columns),

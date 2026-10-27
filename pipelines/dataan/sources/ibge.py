@@ -49,10 +49,9 @@ def _apisidra(agregado: int, variavel: int, periodos: str) -> pd.DataFrame:
     # "-2" (últimos 2 períodos) vira "last 2" na sintaxe do apisidra.
     n = periodos.lstrip("-") if periodos.startswith("-") else None
     p = f"last%20{n}" if n else periodos
+    # O apisidra responde JSON por padrão; não aceita parâmetros de query.
     data = http.get_json(
-        SIDRA_API.format(agregado=agregado, variavel=variavel, periodos=p),
-        params={"formato": "json"},
-        retries=2,
+        SIDRA_API.format(agregado=agregado, variavel=variavel, periodos=p), retries=2
     )
     if not isinstance(data, list) or len(data) < 2 or not isinstance(data[0], dict):
         raise http.FetchError(f"apisidra {agregado}: resposta inesperada: {str(data)[:200]}")

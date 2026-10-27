@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from dataan.models import Category, Chart, Column, Fmt, Kpi, ModelInfo, Source
+from dataan.models import Category, Chart, Column, Fmt, Highlight, Kpi, ModelInfo, Source
 
 CATEGORIES: dict[str, Category] = {
     c.slug: c
@@ -54,6 +54,7 @@ class Build:
     table: pd.DataFrame
     kpis: list[Kpi] = field(default_factory=list)
     insights: list[str] = field(default_factory=list)
+    highlights: list[Highlight] = field(default_factory=list)
     coverage: str | None = None
     data_until: str | None = None
     model: ModelInfo | None = None

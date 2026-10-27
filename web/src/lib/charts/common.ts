@@ -169,6 +169,14 @@ export interface Rendered {
   interaction: Interaction;
 }
 
-export function svgOpen(width: number, height: number, label: string): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(label)}" class="viz-svg">`;
+export function svgOpen(width: number, height: number, label: string, animate = false): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(label)}" class="viz-svg${animate ? ' anim' : ''}">`;
+}
+
+/** Trecho de um gráfico de linha em destaque (vem de `Dataset.highlights`). */
+export interface Focus {
+  start: string;
+  end: string;
+  at: string;
+  label: string;
 }

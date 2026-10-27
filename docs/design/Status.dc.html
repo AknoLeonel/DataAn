@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DataAn — Status do pipeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0A0D12}
+a{color:#8DBBF2}a:hover{color:#B9D5F8}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes ringdraw{from{stroke-dashoffset:var(--c)}to{stroke-dashoffset:var(--o)}}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.rise{animation:rise .7s cubic-bezier(.22,1,.36,1) both}
+.ringdraw{animation:ringdraw 1.4s cubic-bezier(.65,0,.35,1) .2s both}
+.growx{transform-box:fill-box;transform-origin:left center;animation:growx linear both}
+.pop{animation:pop .4s cubic-bezier(.22,1,.36,1) both}
+.row{transition:background .2s}
+.no-motion *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="{{ rootClass }}" style="min-height: 100%; background: #0A0D12; color: #EEF2F6; font-family: 'Geist', system-ui, sans-serif; font-size: 16px; line-height: 1.5">
+
+  <header style="position: sticky; top: 0; z-index: 10; background: #0A0D12; border-bottom: 1px solid rgba(255,255,255,0.08)">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 0 32px; min-height: 64px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; color: #EEF2F6; text-decoration: none; font-weight: 700; font-size: 19px; letter-spacing: -0.02em; margin-right: auto">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#18202A"></rect><rect x="6" y="16" width="5" height="10" rx="1.5" fill="#3987E5"></rect><rect x="13.5" y="11" width="5" height="15" rx="1.5" fill="#3987E5" opacity="0.8"></rect><rect x="21" y="6" width="5" height="20" rx="1.5" fill="#3987E5" opacity="0.6"></rect></svg>
+        DataAn
+      </a>
+      <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 15px; font-weight: 500">
+        <a href="Main.dc.html" style="color: #A9B4C0; text-decoration: none">Explorar</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">Categorias</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">API</a>
+        <a href="Status.dc.html" aria-current="page" style="color: #EEF2F6; text-decoration: none">Status</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">Sobre</a>
+      </nav>
+    </div>
+  </header>
+
+  <main style="max-width: 1240px; margin: 0 auto; padding: 40px 32px 64px; display: flex; flex-direction: column; gap: 24px">
+    <div class="rise">
+      <h1 style="margin: 0; font-size: 48px; letter-spacing: -0.03em; line-height: 1.1">Status do pipeline</h1>
+      <p style="margin: 8px 0 0; color: #A9B4C0; font-size: 17px; max-width: 70ch">Cada conjunto é coletado separadamente. Se uma fonte falha, a última versão válida continua no ar com um aviso, e os outros seguem normalmente.</p>
+    </div>
+
+    <section aria-labelledby="saude" class="rise" style="display: flex; flex-wrap: wrap; gap: 28px; align-items: center; padding: 28px; border-radius: 24px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); animation-delay: 100ms">
+      <svg width="148" height="148" viewBox="0 0 148 148" role="img" aria-label="{{ ringAria }}" style="flex: none">
+        <circle cx="74" cy="74" r="62" fill="none" stroke="#18202A" stroke-width="14"></circle>
+        <circle cx="74" cy="74" r="62" fill="none" stroke="#E66767" stroke-width="14" stroke-dasharray="{{ ring.failDash }}" stroke-dashoffset="{{ ring.failOffset }}" transform="rotate(-90 74 74)"></circle>
+        <circle class="ringdraw" cx="74" cy="74" r="62" fill="none" stroke="#3987E5" stroke-width="14" stroke-linecap="butt" stroke-dasharray="{{ ring.okDash }}" style="--c: {{ ring.circ }}; --o: 0" transform="rotate(-90 74 74)"></circle>
+        <text x="74" y="72" text-anchor="middle" font-size="34" font-weight="700" fill="#EEF2F6" font-family="Geist, sans-serif">{{ okCount }}/{{ total }}</text>
+        <text x="74" y="96" text-anchor="middle" font-size="13" fill="#A9B4C0" font-family="Geist, sans-serif">atualizados</text>
+      </svg>
+      <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(250,178,25,0.12); color: #FAB219; font-size: 14px; font-weight: 600">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3z"></path><path d="M12 10v4M12 17.5v.01"></path></svg>
+          Operação parcial
+        </div>
+        <h2 id="saude" style="margin: 0; font-size: 28px; letter-spacing: -0.02em; line-height: 1.2">7 de 8 conjuntos atualizados. População dos estados está sem dados.</h2>
+        <p style="margin: 0; color: #A9B4C0; font-size: 15px">O servidor do IBGE não respondeu ao build (5 tentativas, 107,2 s). Ainda não existe versão anterior publicada desse conjunto, então a página dele mostra o aviso em vez do gráfico.</p>
+      </div>
+      <dl style="flex: 1 1 260px; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; font-size: 14px">
+        <div><dt style="color: #8C97A5">Última execução</dt><dd style="margin: 2px 0 0; font-weight: 600">27/10/2026, 02:39</dd></div>
+        <div><dt style="color: #8C97A5">Duração</dt><dd style="margin: 2px 0 0; font-weight: 600">197,2 s</dd></div>
+        <div><dt style="color: #8C97A5">Próxima execução</dt><dd style="margin: 2px 0 0; font-weight: 600">27/10/2026, 06:17</dd></div>
+        <div><dt style="color: #8C97A5">Execuções registradas</dt><dd style="margin: 2px 0 0; font-weight: 600">2</dd></div>
+      </dl>
+    </section>
+
+    <section aria-labelledby="tempo" class="rise" style="padding: 28px; border-radius: 24px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); animation-delay: 200ms">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+        <div>
+          <h2 id="tempo" style="margin: 0; font-size: 24px; letter-spacing: -0.02em">Onde a execução gastou tempo</h2>
+          <p style="margin: 4px 0 0; color: #A9B4C0; font-size: 14px">Os conjuntos rodam em sequência. Cada barra começa quando a anterior termina.</p>
+        </div>
+        <button type="button" onClick="{{ replay }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: transparent; color: #EEF2F6; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+          Reproduzir execução
+        </button>
+      </div>
+      <sc-if value="{{ runA }}" hint-placeholder-val="{{ true }}">
+        <svg viewBox="0 0 1160 {{ tl.h }}" width="100%" role="img" aria-label="Linha do tempo da execução: População dos estados ocupou 107,2 de 197,2 segundos" style="display: block; margin-top: 18px; overflow: visible; font-family: 'Geist Mono', monospace">
+          <sc-for list="{{ tl.ticks }}" as="t" hint-placeholder-count="5">
+            <line x1="{{ t.x }}" x2="{{ t.x }}" y1="0" y2="{{ tl.axisY }}" stroke="rgba(255,255,255,0.06)"></line>
+            <text x="{{ t.x }}" y="{{ tl.labelY }}" text-anchor="middle" font-size="12" fill="#8C97A5">{{ t.label }}</text>
+          </sc-for>
+          <sc-for list="{{ tl.bars }}" as="b" hint-placeholder-count="8">
+            <g onMouseEnter="{{ b.pick }}">
+              <rect x="0" y="{{ b.rowY }}" width="1160" height="36" fill="{{ b.rowBg }}" rx="8"></rect>
+              <text x="12" y="{{ b.textY }}" font-size="13" fill="#EEF2F6" font-family="Geist, sans-serif">{{ b.name }}</text>
+              <rect class="growx" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="20" rx="5" fill="{{ b.fill }}" style="animation-duration: {{ b.dur }}; animation-delay: {{ b.delay }}"></rect>
+              <text class="pop" x="{{ b.lx }}" y="{{ b.textY }}" font-size="12" fill="{{ b.labelColor }}" text-anchor="{{ b.anchor }}" style="animation-delay: {{ b.labelDelay }}">{{ b.label }}</text>
+            </g>
+          </sc-for>
+        </svg>
+      </sc-if>
+      <sc-if value="{{ runB }}" hint-placeholder-val="{{ false }}">
+        <svg viewBox="0 0 1160 {{ tl.h }}" width="100%" role="img" aria-label="Linha do tempo da execução: População dos estados ocupou 107,2 de 197,2 segundos" style="display: block; margin-top: 18px; overflow: visible; font-family: 'Geist Mono', monospace">
+          <sc-for list="{{ tl.ticks }}" as="t" hint-placeholder-count="5">
+            <line x1="{{ t.x }}" x2="{{ t.x }}" y1="0" y2="{{ tl.axisY }}" stroke="rgba(255,255,255,0.06)"></line>
+            <text x="{{ t.x }}" y="{{ tl.labelY }}" text-anchor="middle" font-size="12" fill="#8C97A5">{{ t.label }}</text>
+          </sc-for>
+          <sc-for list="{{ tl.bars }}" as="b" hint-placeholder-count="8">
+            <g onMouseEnter="{{ b.pick }}">
+              <rect x="0" y="{{ b.rowY }}" width="1160" height="36" fill="{{ b.rowBg }}" rx="8"></rect>
+              <text x="12" y="{{ b.textY }}" font-size="13" fill="#EEF2F6" font-family="Geist, sans-serif">{{ b.name }}</text>
+              <rect class="growx" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="20" rx="5" fill="{{ b.fill }}" style="animation-duration: {{ b.dur }}; animation-delay: {{ b.delay }}"></rect>
+              <text class="pop" x="{{ b.lx }}" y="{{ b.textY }}" font-size="12" fill="{{ b.labelColor }}" text-anchor="{{ b.anchor }}" style="animation-delay: {{ b.labelDelay }}">{{ b.label }}</text>
+            </g>
+          </sc-for>
+        </svg>
+      </sc-if>
+    </section>
+
+    <section aria-labelledby="conj" class="rise" style="padding: 28px; border-radius: 24px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); animation-delay: 300ms">
+      <h2 id="conj" style="margin: 0 0 4px; font-size: 24px; letter-spacing: -0.02em">Por conjunto de dados</h2>
+      <p style="margin: 0 0 16px; color: #A9B4C0; font-size: 14px">Histórico: uma marca por execução, a mais recente à direita (26/10 18:36 e 27/10 02:39).</p>
+      <div style="overflow-x: auto">
+        <table style="width: 100%; min-width: 860px; border-collapse: collapse; font-size: 14px">
+          <thead>
+            <tr style="text-align: left; color: #8C97A5; font-weight: 500">
+              <th scope="col" style="padding: 10px 12px; font-weight: 500">Conjunto</th>
+              <th scope="col" style="padding: 10px 12px; font-weight: 500">Situação</th>
+              <th scope="col" style="padding: 10px 12px; font-weight: 500">Dados até</th>
+              <th scope="col" style="padding: 10px 12px; font-weight: 500; text-align: right">Linhas</th>
+              <th scope="col" style="padding: 10px 12px; font-weight: 500; text-align: right">Tempo</th>
+              <th scope="col" style="padding: 10px 12px; font-weight: 500">Histórico</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+              <tr class="row" onMouseEnter="{{ r.pick }}" style="border-top: 1px solid rgba(255,255,255,0.07); background: {{ r.bg }}">
+                <th scope="row" style="padding: 14px 12px; text-align: left; font-weight: 600"><a href="#" style="color: #EEF2F6">{{ r.name }}</a></th>
+                <td style="padding: 14px 12px">
+                  <span style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ r.color }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="{{ r.icon }}"></path></svg>{{ r.status }}
+                  </span>
+                  <sc-if value="{{ r.hasNote }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top: 4px; font-size: 13px; color: #A9B4C0; max-width: 46ch">{{ r.note }}</div>
+                  </sc-if>
+                </td>
+                <td style="padding: 14px 12px; color: #CFD7E0">{{ r.until }}</td>
+                <td style="padding: 14px 12px; text-align: right; font-variant-numeric: tabular-nums; color: #CFD7E0">{{ r.rows }}</td>
+                <td style="padding: 14px 12px; text-align: right; font-variant-numeric: tabular-nums; color: #CFD7E0">{{ r.time }}</td>
+                <td style="padding: 14px 12px">
+                  <span role="img" aria-label="{{ r.histAria }}" style="display: inline-flex; gap: 4px">
+                    <sc-for list="{{ r.hist }}" as="h" hint-placeholder-count="2">
+                      <span style="width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; background: {{ h.bg }}">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0A0D12" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ h.icon }}"></path></svg>
+                      </span>
+                    </sc-for>
+                  </span>
+                </td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"animate":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":1780}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { hl: 2, run: 0 };
+  }
+  renderVals() {
+    var self = this;
+    var OK = "M8 12.5 10.8 15.3 16.5 9.5", ALERT = "M12 7v6M12 16.5v.01", X = "m9 9 6 6M15 9l-6 6";
+    var CHECK = "M5 12.5 10 17 19 7", CROSS = "M7 7l10 10M17 7 7 17";
+    // Execução real de 27/10/2026 02:39 (página /status/ publicada).
+    var data = [
+      { name: "Qualidade do ar nas capitais", ok: true, until: "26/10/2026", rows: "1.104", s: 1.7, hist: [true, true] },
+      { name: "Aquecimento nas capitais", ok: true, until: "2025", rows: "360", s: 2.0, hist: [true, true] },
+      { name: "População dos estados", ok: false, until: "—", rows: "0", s: 107.2, hist: [false, false], note: "IBGE não respondeu (tempo esgotado em 5 tentativas). Sem versão anterior para exibir." },
+      { name: "Taxa Selic e juro real", ok: true, until: "27/10/2026", rows: "249", s: 54.8, hist: [true, true] },
+      { name: "Inflação (IPCA)", ok: true, until: "setembro de 2026", rows: "249", s: 2.0, hist: [true, true] },
+      { name: "Dólar comercial", ok: true, until: "26/10/2026", rows: "5.226", s: 23.7, hist: [false, true], note: "Falhou em 26/10 (resposta inesperada do Banco Central); voltou em 27/10." },
+      { name: "Taxa de desemprego", ok: true, until: "agosto de 2026", rows: "174", s: 1.7, hist: [true, true] },
+      { name: "Dengue nas capitais", ok: true, until: "semana de 11/10/2026", rows: "1.524", s: 4.1, hist: [true, true] }
+    ];
+    var total = data.reduce(function (a, d) { return a + d.s; }, 0);
+    var okCount = data.filter(function (d) { return d.ok; }).length;
+    var fmt = function (v) { return v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); };
+
+    var circ = 2 * Math.PI * 62;
+    var okLen = circ * okCount / data.length;
+    var ring = { circ: circ.toFixed(1), okDash: okLen.toFixed(1) + " " + circ.toFixed(1), failDash: (circ - okLen - 4).toFixed(1) + " " + circ.toFixed(1), failOffset: (-okLen - 2).toFixed(1) };
+
+    var L = 250, R = 1150, rowH = 44;
+    var sx = function (s) { return L + s / 200 * (R - L); };
+    var playMs = 3200;
+    var acc = 0;
+    var bars = data.map(function (d, i) {
+      var start = acc; acc += d.s;
+      var x = sx(start), w = Math.max(3, sx(acc) - x);
+      var wide = w > 90;
+      var label = fmt(d.s) + " s";
+      var delay = 300 + start / total * playMs, dur = Math.max(120, d.s / total * playMs);
+      return {
+        name: d.name, rowY: i * rowH, y: i * rowH + 8, textY: i * rowH + 23, x: x.toFixed(1), w: w.toFixed(1),
+        fill: d.ok ? (self.state.hl === i ? "#5FA0EE" : "#3987E5") : (self.state.hl === i ? "#F08A8A" : "#E66767"),
+        rowBg: self.state.hl === i ? "rgba(255,255,255,0.04)" : "transparent",
+        lx: wide ? (x + w - 8).toFixed(1) : (x + w + 8).toFixed(1), anchor: wide ? "end" : "start", labelColor: wide ? "#0A0D12" : "#CFD7E0", label: label,
+        dur: dur.toFixed(0) + "ms", delay: delay.toFixed(0) + "ms", labelDelay: (delay + dur).toFixed(0) + "ms",
+        pick: function () { self.setState({ hl: i }); }
+      };
+    });
+    var axisY = data.length * rowH + 4;
+    var ticks = [0, 50, 100, 150, 200].map(function (s) { return { x: sx(s).toFixed(1), label: s + " s" }; });
+
+    var rows = data.map(function (d, i) {
+      var stale = !d.ok;
+      return {
+        name: d.name, until: d.until, rows: d.rows, time: fmt(d.s) + " s",
+        status: d.ok ? "Atualizado" : "Indisponível", color: d.ok ? "#4CC24C" : "#E66767", icon: d.ok ? OK : X,
+        hasNote: !!d.note, note: d.note || "",
+        bg: self.state.hl === i ? "rgba(255,255,255,0.04)" : "transparent",
+        hist: d.hist.map(function (h) { return { bg: h ? "#4CC24C" : "#E66767", icon: h ? CHECK : CROSS }; }),
+        histAria: d.hist.filter(Boolean).length + " de " + d.hist.length + " execuções com sucesso",
+        pick: function () { self.setState({ hl: i }); }
+      };
+    });
+
+    return {
+      rootClass: this.props.animate === false ? "no-motion" : "",
+      okCount: okCount, total: data.length,
+      ringAria: okCount + " de " + data.length + " conjuntos atualizados",
+      ring: ring,
+      runA: this.state.run % 2 === 0,
+      runB: this.state.run % 2 === 1,
+      tl: { h: axisY + 24, axisY: axisY, labelY: axisY + 18, ticks: ticks, bars: bars },
+      rows: rows,
+      replay: function () { self.setState({ run: self.state.run + 1 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

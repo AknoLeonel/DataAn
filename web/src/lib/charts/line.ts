@@ -1,11 +1,13 @@
 // Gráfico de linhas (séries temporais) com faixa de intervalo, referência e marcador.
 import { formatDate, formatTick, formatValue, parseDate } from '../format';
 import type { LineChart } from '../types';
-import { clamp, esc, linear, nice, r1, svgOpen, textWidth, timeTicks, type Rendered, type TipRow } from './common';
+import { clamp, esc, linear, nice, r1, svgOpen, textWidth, timeTicks, type Focus, type Rendered, type TipRow } from './common';
 
 export interface LineOptions {
   height?: number;
   compact?: boolean;
+  animate?: boolean;
+  focus?: Focus | null;
 }
 
 interface Prepared {
@@ -106,7 +108,7 @@ export function renderLine(spec: LineChart, width: number, opts: LineOptions = {
   }
 
   const m = {
-    top: spec.marker ? 22 : 10,
+    top: spec.marker || opts.focus ? 22 : 10,
     right: single ? textWidth(endLabel) + 14 : 10,
     bottom: 24,
     left: Math.max(...tickLabels.map((l) => textWidth(l, 11))) + 10,
@@ -149,6 +151,16 @@ export function renderLine(spec: LineChart, width: number, opts: LineOptions = {
     parts.push(`<polygon class="band s${s.color}" points="${[...top, ...bottom].join(' ')}"/>`);
   }
 
+  // Trecho em destaque: faixa discreta atrás das linhas
+  const focus = opts.focus;
+  const focusAt = focus ? parseDate(focus.at) : NaN;
+  const focusVisible = !!focus && focusAt >= t0 && focusAt <= t1;
+  if (focus && focusVisible) {
+    const fx0 = clamp(x(Math.max(parseDate(focus.start), t0)) - 8, plotL, plotR);
+    const fx1 = clamp(x(Math.min(parseDate(focus.end), t1)) + 8, plotL, plotR);
+    parts.push(`<rect class="focus-band" x="${r1(fx0)}" y="${r1(plotT - 4)}" width="${r1(Math.max(16, fx1 - fx0))}" height="${r1(plotB - plotT + 4)}" rx="8"/>`);
+  }
+
   // Marcador vertical (ex.: "hoje" / início da previsão)
   if (spec.marker) {
     const px = r1(x(parseDate(spec.marker[0])));
@@ -159,7 +171,8 @@ export function renderLine(spec: LineChart, width: number, opts: LineOptions = {
   // Linhas
   for (const s of series) {
     const d = pathFor(s.pts, x, y, spec.step);
-    if (d) parts.push(`<path class="line s${s.color}${s.dashed ? ' dashed' : ''}" d="${d}"/>`);
+    // pathLength=1 permite "desenhar" a linha na entrada; tracejadas não animam.
+    if (d) parts.push(`<path class="line s${s.color}${s.dashed ? ' dashed' : ''}"${s.dashed ? '' : ' pathLength="1"'} d="${d}"/>`);
   }
 
   // Ponto final de cada série sólida (com anel da cor da superfície)
@@ -172,9 +185,22 @@ export function renderLine(spec: LineChart, width: number, opts: LineOptions = {
     parts.push(`<text class="end-label" x="${r1(x(endPoint[0]) + 8)}" y="${r1(y(endPoint[1]))}" dy="0.32em">${esc(endLabel)}</text>`);
   }
 
+  // Marcador e rótulo do destaque, sobre o ponto da primeira série sólida
+  if (focus && focusVisible && solid[0]) {
+    const fv = valueAt(solid[0], focusAt, spec.step);
+    if (fv !== null) {
+      const px = x(focusAt), py = y(fv);
+      const lw = textWidth(focus.label, 12) + 22;
+      const lx = clamp(px - lw / 2, plotL, Math.max(plotL, plotR - lw));
+      const above = py - 40 >= 0;
+      const ly = above ? py - 38 : py + 14;
+      parts.push(`<g class="focus-mark"><circle class="focus-dot" cx="${r1(px)}" cy="${r1(py)}" r="6"/><rect class="focus-pill" x="${r1(lx)}" y="${r1(ly)}" width="${r1(lw)}" height="26" rx="8"/><text class="focus-label" x="${r1(lx + lw / 2)}" y="${r1(ly + 17)}" text-anchor="middle">${esc(focus.label)}</text></g>`);
+    }
+  }
+
   const lastSolid = solid[0] ? [...solid[0].pts].reverse().find(([, v]) => v !== null) : undefined;
   const aria = `${spec.title}. Gráfico de linhas${lastSolid ? `; último valor de ${solid[0].name}: ${formatValue(lastSolid[1] as number, spec.format)} em ${formatDate(new Date(lastSolid[0]).toISOString().slice(0, 10), spec.x_kind)}` : ''}.`;
-  const svg = svgOpen(width, height, aria) + parts.join('') + '</svg>';
+  const svg = svgOpen(width, height, aria, opts.animate) + parts.join('') + '</svg>';
 
   // Interação: crosshair que encontra o X mais próximo e lista todas as séries.
   const allX = Array.from(new Set(series.flatMap((s) => s.pts.map(([t]) => t)))).sort((a, b) => a - b);

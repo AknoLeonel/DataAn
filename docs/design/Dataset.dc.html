@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DataAn — Inflação (IPCA)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0A0D12}
+a{color:#8DBBF2}a:hover{color:#B9D5F8}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes growy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes slidein{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.rise{animation:rise .7s cubic-bezier(.22,1,.36,1) both}
+.draw{stroke-dasharray:1;animation:draw 1.4s cubic-bezier(.65,0,.35,1) both}
+.fadein{animation:fadein .8s ease-out both}
+.growy{transform-box:fill-box;transform-origin:center bottom;animation:growy .7s cubic-bezier(.22,1,.36,1) both}
+.growdown{transform-box:fill-box;transform-origin:center top;animation:growy .7s cubic-bezier(.22,1,.36,1) both}
+.slidein{transform-origin:left center;animation:slidein .9s cubic-bezier(.22,1,.36,1) both}
+.pop{animation:pop .45s cubic-bezier(.22,1,.36,1) both}
+.morph{transition:d .7s cubic-bezier(.22,1,.36,1)}
+.focusband{transition:x .5s cubic-bezier(.22,1,.36,1),width .5s cubic-bezier(.22,1,.36,1),opacity .3s}
+.insight{transition:background .2s,border-color .2s}
+.no-motion *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="{{ rootClass }}" style="min-height: 100%; background: #0A0D12; color: #EEF2F6; font-family: 'Geist', system-ui, sans-serif; font-size: 16px; line-height: 1.5">
+
+  <header style="position: sticky; top: 0; z-index: 10; background: #0A0D12; border-bottom: 1px solid rgba(255,255,255,0.08)">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 0 32px; min-height: 64px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; color: #EEF2F6; text-decoration: none; font-weight: 700; font-size: 19px; letter-spacing: -0.02em; margin-right: auto">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#18202A"></rect><rect x="6" y="16" width="5" height="10" rx="1.5" fill="#3987E5"></rect><rect x="13.5" y="11" width="5" height="15" rx="1.5" fill="#3987E5" opacity="0.8"></rect><rect x="21" y="6" width="5" height="20" rx="1.5" fill="#3987E5" opacity="0.6"></rect></svg>
+        DataAn
+      </a>
+      <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 15px; font-weight: 500">
+        <a href="Main.dc.html" style="color: #A9B4C0; text-decoration: none">Explorar</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">Categorias</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">API</a>
+        <a href="Status.dc.html" style="color: #A9B4C0; text-decoration: none">Status</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">Sobre</a>
+      </nav>
+    </div>
+  </header>
+
+  <main style="max-width: 1240px; margin: 0 auto; padding: 24px 32px 64px; display: flex; flex-direction: column; gap: 24px">
+    <nav aria-label="Trilha" style="font-size: 14px; color: #8C97A5"><a href="Main.dc.html" style="color: #A9B4C0">Início</a> / <a href="#" style="color: #A9B4C0">Economia</a> / <span style="color: #EEF2F6">Inflação (IPCA)</span></nav>
+
+    <section class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; align-items: flex-end">
+      <div style="flex: 1 1 560px; min-width: 0">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #A9B4C0"><span style="width: 8px; height: 8px; border-radius: 2px; background: #3987E5"></span>Economia</div>
+        <h1 style="margin: 8px 0 10px; font-size: 52px; line-height: 1.05; letter-spacing: -0.03em">Inflação (IPCA)</h1>
+        <p style="margin: 0; font-size: 18px; color: #A9B4C0; max-width: 62ch">A inflação oficial do país, mês a mês e acumulada em 12 meses, comparada ao intervalo de tolerância da meta definido pelo Conselho Monetário Nacional.</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); font-size: 14px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4CC24C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8 12.5 2.8 2.8L16.5 9.5"></path></svg>
+        <span><strong style="font-weight: 600">Atualizado</strong> <span style="color: #A9B4C0">em 27/10/2026, 02:39</span></span>
+      </div>
+    </section>
+
+    <dl class="rise" style="margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px 24px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; animation-delay: 80ms">
+      <div><dt style="color: #8C97A5">Fonte</dt><dd style="margin: 2px 0 0; font-weight: 600"><a href="#">Banco Central — SGS 433 e 13522</a></dd></div>
+      <div><dt style="color: #8C97A5">Frequência</dt><dd style="margin: 2px 0 0; font-weight: 600">Mensal</dd></div>
+      <div><dt style="color: #8C97A5">Dados até</dt><dd style="margin: 2px 0 0; font-weight: 600">setembro de 2026</dd></div>
+      <div><dt style="color: #8C97A5">Próxima divulgação</dt><dd style="margin: 2px 0 0; font-weight: 600">[data do IBGE]</dd></div>
+    </dl>
+
+    <section aria-label="Indicadores principais" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px">
+      <div class="rise" style="padding: 22px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px; animation-delay: 120ms">
+        <div style="font-size: 14px; color: #A9B4C0">IPCA em 12 meses · {{ k.lastLabel }}</div>
+        <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap">
+          <span style="font-size: 44px; font-weight: 650; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1">{{ k.a12 }}</span>
+          <span style="font-size: 14px; font-weight: 600; color: {{ k.d12Color }}">{{ k.d12 }} <span style="font-weight: 400; color: #8C97A5">vs. mês anterior</span></span>
+        </div>
+        <svg viewBox="0 0 300 52" width="100%" role="img" aria-label="{{ k.bulletAria }}" style="display: block; overflow: visible; font-family: 'Geist Mono', monospace">
+          <rect x="0" y="16" width="300" height="12" rx="6" fill="#18202A"></rect>
+          <rect x="{{ k.bandX }}" y="16" width="{{ k.bandW }}" height="12" fill="rgba(25,158,112,0.4)" class="fadein"></rect>
+          <line x1="{{ k.centerX }}" x2="{{ k.centerX }}" y1="12" y2="32" stroke="#199E70" stroke-width="2"></line>
+          <rect x="0" y="19" width="{{ k.valueX }}" height="6" rx="3" fill="#3987E5" class="slidein" style="animation-delay: 300ms"></rect>
+          <circle cx="{{ k.valueX }}" cy="22" r="7" fill="#3987E5" stroke="#11161D" stroke-width="3" class="pop" style="animation-delay: 1s"></circle>
+          <text x="{{ k.bandX }}" y="46" font-size="11" fill="#8C97A5" text-anchor="middle">{{ k.loLabel }}</text>
+          <text x="{{ k.centerX }}" y="8" font-size="11" fill="#199E70" text-anchor="middle">meta {{ k.cLabel }}</text>
+          <text x="{{ k.hiX }}" y="46" font-size="11" fill="#8C97A5" text-anchor="middle">{{ k.hiLabel }}</text>
+        </svg>
+        <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: {{ k.statusColor }}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="{{ k.statusIcon }}"></path></svg>
+          <span style="color: #EEF2F6">{{ k.status }}</span>
+        </div>
+      </div>
+
+      <div class="rise" style="padding: 22px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px; animation-delay: 180ms">
+        <div style="font-size: 14px; color: #A9B4C0">IPCA do mês · {{ k.lastLabel }}</div>
+        <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap">
+          <span style="font-size: 44px; font-weight: 650; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1">{{ k.m }}</span>
+          <span style="font-size: 14px; color: #8C97A5">mesmo mês de {{ k.prevYear }}: <strong style="color: #EEF2F6; font-weight: 600">{{ k.mPrev }}</strong></span>
+        </div>
+        <svg viewBox="0 0 300 64" width="100%" role="img" aria-label="Variação mensal nos últimos 12 meses" style="display: block">
+          <line x1="0" x2="300" y1="{{ k.zeroY }}" y2="{{ k.zeroY }}" stroke="rgba(255,255,255,0.15)"></line>
+          <sc-for list="{{ k.minis }}" as="b" hint-placeholder-count="12">
+            <rect x="{{ b.x }}" y="{{ b.y }}" width="18" height="{{ b.h }}" rx="3" fill="{{ b.fill }}" class="{{ b.anim }}" style="animation-delay: {{ b.delay }}"></rect>
+          </sc-for>
+        </svg>
+        <div style="font-size: 13px; color: #8C97A5">Últimos 12 meses · destaque no mês mais recente</div>
+      </div>
+
+      <div class="rise" style="padding: 22px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 10px; animation-delay: 240ms">
+        <div style="font-size: 14px; color: #A9B4C0">Meses acima do teto · últimos 12</div>
+        <div style="display: flex; align-items: baseline; gap: 10px">
+          <span style="font-size: 44px; font-weight: 650; letter-spacing: -0.03em; line-height: 1">{{ k.above }}</span>
+          <span style="font-size: 16px; color: #A9B4C0">de 12</span>
+        </div>
+        <ol aria-label="Mês a mês" style="list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{ k.dots }}" as="dt" hint-placeholder-count="12">
+            <li style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+              <span class="pop" title="{{ dt.title }}" style="width: 100%; aspect-ratio: 1; max-width: 20px; border-radius: 6px; background: {{ dt.bg }}; border: 1.5px solid {{ dt.border }}; animation-delay: {{ dt.delay }}"></span>
+              <span style="font-size: 11px; color: #8C97A5">{{ dt.m }}</span>
+            </li>
+          </sc-for>
+        </ol>
+        <div style="display: flex; gap: 16px; font-size: 13px; color: #A9B4C0"><span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #E66767"></span>acima do teto</span><span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid #4A5562"></span>dentro ou abaixo</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="hist-t" class="rise" style="padding: 28px; border-radius: 24px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); animation-delay: 300ms">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+        <div>
+          <h2 id="hist-t" style="margin: 0; font-size: 26px; letter-spacing: -0.02em">IPCA em 12 meses e o intervalo da meta</h2>
+          <p style="margin: 4px 0 0; font-size: 14px; color: #A9B4C0">Escolha um destaque para ver no gráfico de onde ele vem.</p>
+        </div>
+        <div role="group" aria-label="Período" style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #0A0D12; border: 1px solid rgba(255,255,255,0.08)">
+          <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="3">
+            <button type="button" aria-pressed="{{ r.pressed }}" onClick="{{ r.pick }}" style="min-height: 40px; min-width: 56px; padding: 0 16px; border-radius: 999px; border: 0; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; background: {{ r.bg }}; color: {{ r.fg }}">{{ r.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; margin-top: 20px">
+        <ul aria-label="Destaques" style="list-style: none; margin: 0; padding: 0; flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{ insights }}" as="ins" hint-placeholder-count="3">
+            <li>
+              <button type="button" class="insight" aria-pressed="{{ ins.pressed }}" onClick="{{ ins.pick }}" onMouseEnter="{{ ins.pick }}" style="width: 100%; text-align: left; display: flex; gap: 12px; padding: 14px 16px; border-radius: 16px; font: inherit; font-size: 15px; line-height: 1.45; color: #EEF2F6; cursor: pointer; background: {{ ins.bg }}; border: 1px solid {{ ins.border }}">
+                <span style="flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-family: 'Geist Mono', monospace; font-size: 12px; background: {{ ins.badgeBg }}; color: {{ ins.badgeFg }}">{{ ins.n }}</span>
+                <span>{{ ins.text }}</span>
+              </button>
+            </li>
+          </sc-for>
+        </ul>
+
+        <div style="flex: 999 1 560px; min-width: 0">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 8px; font-size: 13px; color: #A9B4C0">
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 18px; height: 3px; border-radius: 2px; background: #3987E5"></span>IPCA 12 meses</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 14px; height: 12px; border-radius: 3px; background: rgba(25,158,112,0.28); border: 1px solid rgba(25,158,112,0.6)"></span>Intervalo da meta</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 18px; height: 0; border-top: 2px dashed #199E70"></span>Centro</span>
+          </div>
+          <svg viewBox="0 0 860 360" width="100%" role="img" aria-label="{{ chartAria }}" style="display: block; overflow: visible; font-family: 'Geist Mono', monospace">
+            <sc-for list="{{ yTicks }}" as="yt" hint-placeholder-count="5">
+              <line x1="44" x2="850" y1="{{ yt.y }}" y2="{{ yt.y }}" stroke="rgba(255,255,255,0.07)"></line>
+              <text x="34" y="{{ yt.y }}" dy="4" text-anchor="end" font-size="12" fill="#8C97A5">{{ yt.label }}</text>
+            </sc-for>
+            <rect class="focusband" x="{{ fb.x }}" y="12" width="{{ fb.w }}" height="304" rx="8" fill="rgba(238,242,246,0.06)" stroke="rgba(238,242,246,0.25)" stroke-dasharray="4 4" opacity="{{ fb.opacity }}"></rect>
+            <path class="morph fadein" d="{{ band }}" style="d: path('{{ band }}')" fill="rgba(25,158,112,0.16)"></path>
+            <path class="morph" d="{{ center }}" style="d: path('{{ center }}')" fill="none" stroke="#199E70" stroke-width="1.5" stroke-dasharray="5 5"></path>
+            <path class="morph draw" pathLength="1" d="{{ line }}" style="d: path('{{ line }}'); animation-delay: 400ms" fill="none" stroke="#3987E5" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+            <sc-for list="{{ xTicks }}" as="xt" hint-placeholder-count="6">
+              <text x="{{ xt.x }}" y="350" text-anchor="middle" font-size="12" fill="#8C97A5">{{ xt.label }}</text>
+            </sc-for>
+            <sc-if value="{{ fb.show }}" hint-placeholder-val="{{ true }}">
+              <g class="fadein">
+                <circle cx="{{ fb.px }}" cy="{{ fb.py }}" r="6" fill="#EEF2F6" stroke="#11161D" stroke-width="3"></circle>
+                <rect x="{{ fb.lx }}" y="{{ fb.ly }}" width="{{ fb.lw }}" height="30" rx="8" fill="#EEF2F6"></rect>
+                <text x="{{ fb.tx }}" y="{{ fb.ty }}" font-size="13" font-family="Geist, sans-serif" font-weight="600" fill="#0A0D12" text-anchor="middle">{{ fb.label }}</text>
+              </g>
+            </sc-if>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="mensal-t" class="rise" style="padding: 28px; border-radius: 24px; background: #11161D; border: 1px solid rgba(255,255,255,0.08)">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px">
+        <div>
+          <h2 id="mensal-t" style="margin: 0; font-size: 26px; letter-spacing: -0.02em">Variação mês a mês</h2>
+          <p style="margin: 4px 0 0; font-size: 14px; color: #A9B4C0">Últimos 24 meses. Barras para baixo são deflação.</p>
+        </div>
+        <div aria-live="polite" style="min-height: 52px; padding: 8px 14px; border-radius: 14px; background: #18202A; font-size: 14px; display: flex; flex-direction: column; justify-content: center">
+          <span style="color: #A9B4C0">{{ mh.label }}</span>
+          <strong style="font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums">{{ mh.value }}</strong>
+        </div>
+      </div>
+      <svg viewBox="0 0 1160 260" width="100%" role="img" aria-label="Variação mensal do IPCA nos últimos 24 meses" style="display: block; margin-top: 16px; overflow: visible; font-family: 'Geist Mono', monospace">
+        <sc-for list="{{ mTicks }}" as="mt" hint-placeholder-count="4">
+          <line x1="44" x2="1150" y1="{{ mt.y }}" y2="{{ mt.y }}" stroke="{{ mt.stroke }}"></line>
+          <text x="34" y="{{ mt.y }}" dy="4" text-anchor="end" font-size="12" fill="#8C97A5">{{ mt.label }}</text>
+        </sc-for>
+        <sc-for list="{{ months }}" as="mo" hint-placeholder-count="24">
+          <g>
+            <rect x="{{ mo.hitX }}" y="0" width="{{ mo.hitW }}" height="240" fill="transparent" onMouseEnter="{{ mo.pick }}" onClick="{{ mo.pick }}"></rect>
+            <rect x="{{ mo.x }}" y="{{ mo.y }}" width="{{ mo.w }}" height="{{ mo.h }}" rx="4" fill="{{ mo.fill }}" opacity="{{ mo.opacity }}" class="{{ mo.anim }}" style="animation-delay: {{ mo.delay }}; pointer-events: none"></rect>
+            <text x="{{ mo.cx }}" y="256" text-anchor="middle" font-size="11" fill="#8C97A5" style="pointer-events: none">{{ mo.tick }}</text>
+          </g>
+        </sc-for>
+      </svg>
+    </section>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px">
+      <div style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08)">
+        <h2 style="margin: 0 0 10px; font-size: 20px">Como ler e de onde vem</h2>
+        <ul style="margin: 0; padding-left: 18px; color: #A9B4C0; font-size: 15px; display: flex; flex-direction: column; gap: 8px">
+          <li>IPCA mensal (SGS 433) e acumulado em 12 meses (SGS 13522), em %.</li>
+          <li>Meta do CMN: 3% com tolerância de 1,5 p.p. desde 2024; antes, centro maior e faixas diferentes, por ano.</li>
+          <li>Os destaques são calculados da mesma série do gráfico, a cada atualização.</li>
+        </ul>
+      </div>
+      <div style="padding: 24px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 20px">Baixar e usar</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px">
+          <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; background: #3987E5; color: #FFFFFF; text-decoration: none; font-weight: 600">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>CSV
+          </a>
+          <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); color: #EEF2F6; text-decoration: none; font-weight: 600">JSON</a>
+        </div>
+        <pre style="margin: 0; padding: 14px 16px; border-radius: 12px; background: #0A0D12; font-family: 'Geist Mono', monospace; font-size: 13px; color: #CFD7E0; overflow-x: auto">import pandas as pd
+df = pd.read_csv("https://dataan.vercel.app/data/csv/ipca.csv")</pre>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"animate":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":2360}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { range: "10A", focus: 0, month: null };
+  }
+
+  fmt(v, d) { return v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+  data() {
+    if (this._data) return this._data;
+    var anchors = [[2016.0,10.7],[2016.5,8.8],[2017.0,5.4],[2017.5,2.6],[2018.0,2.9],[2018.5,4.4],[2019.0,3.8],[2019.5,3.2],[2020.0,4.2],[2020.4,1.9],[2021.0,4.6],[2021.75,10.3],[2022.3,12.1],[2022.9,5.8],[2023.5,3.2],[2024.0,4.5],[2024.9,4.8],[2025.4,5.3],[2025.9,4.6],[2026.7,4.3]];
+    var targets = {2016:[4.5,2],2017:[4.5,1.5],2018:[4.5,1.5],2019:[4.25,1.5],2020:[4,1.5],2021:[3.75,1.5],2022:[3.5,1.5],2023:[3.25,1.5]};
+    var a12 = [];
+    for (var m = 0; m <= 128; m++) {
+      var t = 2016 + m / 12, j = 0;
+      while (j < anchors.length - 2 && anchors[j + 1][0] < t) j++;
+      var A = anchors[j], B = anchors[j + 1];
+      var f = Math.max(0, Math.min(1, (t - A[0]) / (B[0] - A[0])));
+      a12.push(A[1] + (B[1] - A[1]) * (0.5 - Math.cos(Math.PI * f) / 2) + 0.05 * Math.sin(m * 1.3));
+    }
+    // Mensal coerente com o acumulado: (1+a12_t) = (1+a12_{t-1}) * (1+m_t) / (1+m_{t-12})
+    var mon = [];
+    for (var i = 0; i < a12.length; i++) {
+      if (i < 12) mon.push((Math.pow(1 + a12[0] / 100, 1 / 12) - 1) * 100);
+      else mon.push(((1 + a12[i] / 100) / (1 + a12[i - 1] / 100) * (1 + mon[i - 12] / 100) - 1) * 100);
+    }
+    var rows = a12.map(function (v, i) {
+      var year = 2016 + Math.floor(i / 12);
+      var tg = targets[year] || [3, 1.5];
+      return { i: i, year: year, month: i % 12, v: v, m: mon[i], c: tg[0], lo: tg[0] - tg[1], hi: tg[0] + tg[1] };
+    });
+    this._data = rows;
+    return rows;
+  }
+
+  renderVals() {
+    var self = this;
+    var MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    var MESESL = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+    var good = "#4CC24C", bad = "#F07B7B", warn = "#FAB219";
+    var rows = this.data();
+    var n = rows.length, last = rows[n - 1], prev = rows[n - 2];
+    var lastLabel = MESES[last.month] + "/" + last.year;
+
+    // KPI 1: bullet com a posição no intervalo da meta
+    var sx = function (v) { return Math.max(0, Math.min(300, v / 8 * 300)); };
+    var state = last.v > last.hi ? ["Acima do teto da meta", bad, "M12 7v6M12 16.5v.01"] : last.v < last.lo ? ["Abaixo do piso da meta", warn, "M12 7v6M12 16.5v.01"] : ["Dentro do intervalo da meta", good, "m8 12.5 2.8 2.8L16.5 9.5"];
+    var d12 = last.v - prev.v;
+    var last12 = rows.slice(n - 12);
+    var minis = last12.map(function (r, i) {
+      var zeroY = 40, scale = 30;
+      var h = Math.max(2, Math.abs(r.m) * scale);
+      return { x: (i * 25 + 3).toFixed(1), y: (r.m >= 0 ? zeroY - h : zeroY).toFixed(1), h: h.toFixed(1), fill: i === 11 ? (r.m >= 0 ? "#E66767" : "#3987E5") : "rgba(169,180,192,0.35)", anim: r.m >= 0 ? "growy" : "growdown", delay: (300 + i * 40) + "ms" };
+    });
+    var sameLY = rows[n - 13];
+    var above = last12.filter(function (r) { return r.v > r.hi; }).length;
+    var dots = last12.map(function (r, i) {
+      var up = r.v > r.hi;
+      return { m: MESES[r.month].charAt(0).toUpperCase(), title: MESES[r.month] + "/" + r.year + ": " + self.fmt(r.v, 2) + "%", bg: up ? "#E66767" : "transparent", border: up ? "#E66767" : "#4A5562", delay: (400 + i * 50) + "ms" };
+    });
+    var k = {
+      lastLabel: lastLabel,
+      a12: this.fmt(last.v, 2) + "%",
+      d12: (d12 > 0 ? "↑ +" : d12 < 0 ? "↓ −" : "") + this.fmt(Math.abs(d12), 2) + " p.p.",
+      d12Color: d12 > 0 ? bad : good,
+      bandX: sx(last.lo).toFixed(1), bandW: (sx(last.hi) - sx(last.lo)).toFixed(1), hiX: sx(last.hi).toFixed(1), centerX: sx(last.c).toFixed(1), valueX: sx(last.v).toFixed(1),
+      loLabel: this.fmt(last.lo, 1) + "%", hiLabel: this.fmt(last.hi, 1) + "%", cLabel: this.fmt(last.c, 1) + "%",
+      bulletAria: "IPCA 12 meses de " + this.fmt(last.v, 2) + "%; intervalo da meta de " + this.fmt(last.lo, 1) + "% a " + this.fmt(last.hi, 1) + "%",
+      status: state[0], statusColor: state[1], statusIcon: state[2],
+      m: this.fmt(last.m, 2) + "%", mPrev: this.fmt(sameLY.m, 2) + "%", prevYear: sameLY.year,
+      zeroY: 40, minis: minis,
+      above: above, dots: dots
+    };
+
+    // Gráfico principal com recorte por período e destaques calculados da série
+    var take = this.state.range === "1A" ? 13 : this.state.range === "5A" ? 61 : n;
+    var seg = rows.slice(n - take);
+    var N = 64, L = 44, R = 850, T = 12, Bt = 316, ymax = 13;
+    var sample = [];
+    for (var q = 0; q < N; q++) {
+      var pos = q * (seg.length - 1) / (N - 1), i0 = Math.floor(pos), i1 = Math.min(seg.length - 1, i0 + 1), fr = pos - i0;
+      var a = seg[i0], b = seg[i1];
+      sample.push({ v: a.v + (b.v - a.v) * fr, lo: a.lo + (b.lo - a.lo) * fr, hi: a.hi + (b.hi - a.hi) * fr, c: a.c + (b.c - a.c) * fr });
+    }
+    var X = function (q) { return L + q * (R - L) / (N - 1); };
+    var Xi = function (srcI) { return L + (srcI - seg[0].i) / (seg.length - 1) * (R - L); };
+    var Y = function (v) { return Bt - v / ymax * (Bt - T); };
+    var pathOf = function (key) { return sample.map(function (s, q) { return (q ? "L" : "M") + X(q).toFixed(1) + "," + Y(s[key]).toFixed(1); }).join(""); };
+    var band = pathOf("hi") + sample.slice().reverse().map(function (s, q) { return "L" + X(N - 1 - q).toFixed(1) + "," + Y(s.lo).toFixed(1); }).join("") + "Z";
+
+    var yTicks = [0, 3, 6, 9, 12].map(function (v) { return { y: Y(v).toFixed(1), label: v + "%" }; });
+    var xTicks = [];
+    seg.forEach(function (r, i) {
+      var x = Xi(r.i).toFixed(1);
+      if (self.state.range === "1A") { if (i % 3 === 0) xTicks.push({ x: x, label: MESES[r.month] + "/" + String(r.year).slice(2) }); }
+      else if (r.month === 0 && (self.state.range === "5A" || r.year % 2 === 0)) xTicks.push({ x: x, label: String(r.year) });
+    });
+
+    // Destaques (sempre derivados de `rows`)
+    var peak = seg.reduce(function (p, r) { return r.v > p.v ? r : p; }, seg[0]);
+    var streakEnd = null, streakStart = null;
+    for (var s2 = n - 1; s2 >= 0; s2--) { if (rows[s2].v > rows[s2].hi) { streakEnd = rows[s2]; break; } }
+    if (streakEnd) { streakStart = streakEnd; for (var s3 = streakEnd.i; s3 >= 0 && rows[s3].v > rows[s3].hi; s3--) streakStart = rows[s3]; }
+    var ins = [
+      { n: "1", text: "Em " + MESESL[last.month] + " de " + last.year + ", o IPCA em 12 meses ficou em " + this.fmt(last.v, 2) + "%: " + state[0].toLowerCase() + " (" + this.fmt(last.lo, 1) + "% a " + this.fmt(last.hi, 1) + "%).", from: last.i, to: last.i, at: last },
+      { n: "2", text: streakEnd ? "O período mais recente acima do teto foi de " + MESES[streakStart.month] + "/" + streakStart.year + " a " + MESES[streakEnd.month] + "/" + streakEnd.year + ": " + (streakEnd.i - streakStart.i + 1) + " meses seguidos." : "Nenhum mês acima do teto na série exibida.", from: streakStart ? streakStart.i : last.i, to: streakEnd ? streakEnd.i : last.i, at: streakEnd || last },
+      { n: "3", text: "O maior valor no período escolhido foi " + this.fmt(peak.v, 2) + "%, em " + MESESL[peak.month] + " de " + peak.year + ".", from: peak.i, to: peak.i, at: peak }
+    ];
+    var insights = ins.map(function (it, idx) {
+      var on = self.state.focus === idx;
+      return { n: it.n, text: it.text, pressed: on ? "true" : "false", bg: on ? "#18202A" : "transparent", border: on ? "rgba(141,187,242,0.5)" : "rgba(255,255,255,0.08)", badgeBg: on ? "#3987E5" : "#18202A", badgeFg: on ? "#FFFFFF" : "#A9B4C0", pick: function () { self.setState({ focus: idx }); } };
+    });
+    var cur = ins[this.state.focus];
+    var inView = cur.at.i >= seg[0].i;
+    var fx0 = Math.max(L, Xi(Math.max(cur.from, seg[0].i)) - 10), fx1 = Math.min(R, Xi(cur.to) + 10);
+    var px = Xi(cur.at.i), py = Y(cur.at.v);
+    var lbl = this.fmt(cur.at.v, 2) + "% · " + MESES[cur.at.month] + "/" + cur.at.year;
+    var lw = lbl.length * 7.4 + 20;
+    var lx = Math.max(L, Math.min(R - lw, px - lw / 2));
+    var ly = py - 52 < T ? py + 16 : py - 46;
+    var fb = { show: inView, x: fx0.toFixed(1), w: Math.max(20, fx1 - fx0).toFixed(1), opacity: inView ? 1 : 0, px: px.toFixed(1), py: py.toFixed(1), lx: lx.toFixed(1), ly: ly.toFixed(1), lw: lw.toFixed(1), tx: (lx + lw / 2).toFixed(1), ty: (ly + 20).toFixed(1), label: lbl };
+
+    var ranges = ["1A", "5A", "10A"].map(function (r) {
+      var on = self.state.range === r;
+      return { label: r, pressed: on ? "true" : "false", bg: on ? "#EEF2F6" : "transparent", fg: on ? "#0A0D12" : "#A9B4C0", pick: function () { self.setState({ range: r }); } };
+    });
+
+    // Colunas mensais (24 meses)
+    var m24 = rows.slice(n - 24);
+    var mmax = Math.max.apply(null, m24.map(function (r) { return Math.abs(r.m); }));
+    var top = Math.ceil(mmax * 4) / 4, bottom = Math.min(0, Math.floor(Math.min.apply(null, m24.map(function (r) { return r.m; })) * 4) / 4);
+    var MY = function (v) { return 220 - (v - bottom) / (top - bottom) * 200; };
+    var bw = (1150 - 44) / 24;
+    var sel = this.state.month === null ? 23 : this.state.month;
+    var months = m24.map(function (r, i) {
+      var y0 = MY(0), yv = MY(r.m), h = Math.max(2, Math.abs(yv - y0));
+      return { x: (44 + i * bw + 6).toFixed(1), w: (bw - 12).toFixed(1), y: Math.min(y0, yv).toFixed(1), h: h.toFixed(1), cx: (44 + i * bw + bw / 2).toFixed(1), hitX: (44 + i * bw).toFixed(1), hitW: bw.toFixed(1), fill: r.m >= 0 ? "#E66767" : "#3987E5", opacity: i === sel ? 1 : 0.45, anim: r.m >= 0 ? "growy" : "growdown", delay: (i * 30) + "ms", tick: i % 3 === 2 || i === 23 ? MESES[r.month] + "/" + String(r.year).slice(2) : "", pick: function () { self.setState({ month: i }); } };
+    });
+    var mTicks = [];
+    for (var v = bottom; v <= top + 1e-9; v += 0.25) mTicks.push({ y: MY(v).toFixed(1), label: this.fmt(v, 2) + "%", stroke: Math.abs(v) < 1e-9 ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.06)" });
+    var selR = m24[sel];
+
+    return {
+      rootClass: this.props.animate === false ? "no-motion" : "",
+      k: k,
+      ranges: ranges,
+      insights: insights,
+      fb: fb,
+      band: band,
+      center: pathOf("c"),
+      line: pathOf("v"),
+      yTicks: yTicks,
+      xTicks: xTicks,
+      chartAria: "IPCA em 12 meses, período " + this.state.range + ". " + ins[this.state.focus].text,
+      months: months,
+      mTicks: mTicks,
+      mh: { label: MESESL[selR.month] + " de " + selR.year, value: (selR.m > 0 ? "+" : "") + this.fmt(selR.m, 2) + "% no mês" }
+    };
+  }
+}
+</script>
+</body>
+</html>

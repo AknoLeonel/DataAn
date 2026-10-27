@@ -30,6 +30,11 @@ export interface Series {
   color: number;
 }
 
+export interface Badge {
+  status: StatusLevel;
+  label: string;
+}
+
 export interface LineChart {
   type: 'line';
   id: string;
@@ -42,6 +47,7 @@ export interface LineChart {
   y_zero: boolean;
   reference: RefLine[];
   marker?: [string, string];
+  badge?: Badge;
   note?: string;
 }
 
@@ -94,15 +100,38 @@ export interface Delta {
   good: 'up' | 'down' | 'neutral';
 }
 
+export interface KpiRange {
+  min: number;
+  max: number;
+  lo?: number;
+  hi?: number;
+  mark?: number;
+  label?: string;
+}
+
 export interface Kpi {
   label: string;
   value: number;
   format: Fmt;
   delta?: Delta;
   spark?: number[];
+  spark_kind?: 'line' | 'bars';
   as_of?: string;
   status?: StatusLevel;
   status_label?: string;
+  range?: KpiRange;
+  dots?: boolean[];
+  dot_labels?: string[];
+  dot_legend?: [string, string];
+}
+
+export interface Highlight {
+  text: string;
+  chart: string;
+  start: string;
+  end: string;
+  at: string;
+  label: string;
 }
 
 export interface ModelInfo {
@@ -137,6 +166,7 @@ export interface Dataset {
   kpis: Kpi[];
   charts: Chart[];
   insights: string[];
+  highlights?: Highlight[];
   methodology: string[];
   model?: ModelInfo;
   columns: Column[];

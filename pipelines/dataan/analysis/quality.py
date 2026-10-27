@@ -61,6 +61,12 @@ def check_dataset(ds: Dataset) -> None:
                 f"Gráfico '{c.id}': série '{s.key}' sem valores",
             )
 
+    for kpi in ds.kpis:
+        if kpi.dots is not None and kpi.dot_labels is not None:
+            require(len(kpi.dots) == len(kpi.dot_labels), f"KPI '{kpi.label}': pontos e rótulos")
+        if kpi.range is not None:
+            require(kpi.range.min < kpi.range.max, f"KPI '{kpi.label}': régua inválida")
+
     ids = set()
     for chart in ds.charts:
         require(chart.id not in ids, f"id de gráfico duplicado: {chart.id}")
@@ -72,3 +78,10 @@ def check_dataset(ds: Dataset) -> None:
                 check_line(sub)
         elif isinstance(chart, (BarChart, ColumnChart)):
             require(all(_finite(i.value) for i in chart.items), f"'{chart.id}': valor inválido")
+
+    lines = {c.id: c for c in ds.charts if isinstance(c, LineChart)}
+    for h in ds.highlights:
+        require(h.chart in lines, f"Destaque aponta para gráfico inexistente: {h.chart}")
+        xs = {p[0] for s in lines[h.chart].series for p in s.points}
+        require(h.at in xs, f"Destaque '{h.label}': ponto {h.at} fora do gráfico {h.chart}")
+        require(h.start <= h.at <= h.end, f"Destaque '{h.label}': trecho inválido")
