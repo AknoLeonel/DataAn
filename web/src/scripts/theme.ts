@@ -2,10 +2,9 @@
 const KEY = 'dataan-theme';
 const root = document.documentElement;
 
+// O escuro é o padrão do site; o claro é uma escolha explícita.
 function current(): 'light' | 'dark' {
-  const attr = root.getAttribute('data-theme');
-  if (attr === 'light' || attr === 'dark') return attr;
-  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
 }
 
 for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {

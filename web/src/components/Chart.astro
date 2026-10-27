@@ -1,9 +1,11 @@
 ---
 // Um gráfico: SVG gerado no build (funciona sem JS) + especificação em JSON para o
-// navegador redesenhar na largura real e adicionar tooltip, crosshair e teclado.
-import { render, SSR_WIDTH } from '../lib/charts';
-import type { SingleChart } from '../lib/types';
+// navegador redesenhar na largura real, animar a entrada e adicionar tooltip,
+// crosshair, teclado, períodos e destaques ligados ao texto.
+import { rangeOptions, render, SSR_WIDTH } from '../lib/charts';
+import type { Highlight, SingleChart } from '../lib/types';
 import DataTable from './DataTable.astro';
+import StatusPill from './StatusPill.astro';
 
 interface Props {
   chart: SingleChart;
@@ -12,16 +14,23 @@ interface Props {
   csvHref?: string;
   showLegend?: boolean;
   table?: boolean;
+  highlights?: Highlight[];
+  ranges?: boolean;
 }
-const { chart, level = 2, compact = false, csvHref, showLegend = true, table = true } = Astro.props;
+const { chart, level = 2, compact = false, csvHref, showLegend = true, table = true, highlights = [], ranges = true } = Astro.props;
 const H = `h${level}` as 'h2' | 'h3';
-const rendered = render(chart, SSR_WIDTH, compact);
+const firstFocus = highlights[0] ?? null;
+const rendered = render(chart, SSR_WIDTH, { compact, focus: firstFocus });
 const spec = JSON.stringify(chart).replace(/</g, '\\u003c');
+const hlJson = JSON.stringify(highlights).replace(/</g, '\\u003c');
+const periods = ranges && !compact ? rangeOptions(chart) : [];
 
-type LegendItem = { name: string; cls: string; shape: 'line' | 'rect'; dashed?: boolean };
+type LegendItem = { name: string; cls: string; shape: 'line' | 'rect' | 'band'; dashed?: boolean };
 const legend: LegendItem[] = [];
-if (chart.type === 'line' && chart.series.length > 1) {
-  for (const s of chart.series) legend.push({ name: s.name, cls: `s${s.color}`, shape: 'line', dashed: s.style === 'dashed' });
+if (chart.type === 'line' && (chart.series.length > 1 || chart.series.some((s) => s.band))) {
+  for (const s of chart.series) {
+    legend.push({ name: s.name, cls: `s${s.color}`, shape: s.band && s.style === 'dashed' ? 'band' : 'line', dashed: s.style === 'dashed' });
+  }
 } else if (chart.type === 'column' && chart.diverging) {
   if (chart.items.some((i) => i.value >= 0)) legend.push({ name: 'Positivo', cls: 'pos', shape: 'rect' });
   if (chart.items.some((i) => i.value < 0)) legend.push({ name: 'Negativo', cls: 'neg', shape: 'rect' });
@@ -30,24 +39,56 @@ if (chart.type === 'line' && chart.series.length > 1) {
   legend.push({ name: chart.highlight_label, cls: 's1', shape: 'rect' }, { name: 'Demais', cls: 'dim', shape: 'rect' });
 }
 const hint = chart.type === 'line' ? 'use as setas para percorrer as datas' : 'use as setas para percorrer os itens';
+const badge = chart.type === 'line' ? chart.badge : undefined;
 ---
-<figure class:list={['viz', { 'viz-grid-item': compact }]} data-chart data-compact={compact ? '1' : undefined} id={`grafico-${chart.id}`}>
+<figure
+  class:list={['viz', { 'viz-grid-item': compact, 'has-highlights': highlights.length > 0 }]}
+  data-chart
+  data-compact={compact ? '1' : undefined}
+  data-panel={compact ? chart.id : undefined}
+  id={`grafico-${chart.id}`}
+>
   <div class="viz-head">
-    <H id={`h-${chart.id}`}>{chart.title}</H>
+    <div class="viz-title">
+      <H id={`h-${chart.id}`}>{chart.title}</H>
+      {badge && <StatusPill level={badge.status} label={badge.label} />}
+    </div>
     {chart.subtitle && <p>{chart.subtitle}</p>}
   </div>
+  {periods.length > 0 && (
+    <div class="seg-control js-only" role="group" aria-label="Período">
+      {periods.map((p) => (
+        <button type="button" data-range={p.years ?? 'all'} aria-pressed={p.years === null ? 'true' : 'false'}>{p.label}</button>
+      ))}
+    </div>
+  )}
   {showLegend && legend.length > 0 && (
     <ul class="legend" aria-label="Legenda">
       {legend.map((l) => (
         <li>
-          <span class:list={['key', l.shape === 'line' ? 'key-line' : 'key-rect', l.cls, { dashed: l.dashed }]} />
+          <span class:list={['key', l.shape === 'line' ? 'key-line' : l.shape === 'band' ? 'key-band' : 'key-rect', l.cls, { dashed: l.dashed }]} />
           {l.name}
         </li>
       ))}
     </ul>
   )}
-  <div class="viz-canvas" tabindex="0" aria-label={`${chart.title} — gráfico interativo; ${hint}`} set:html={rendered.svg} />
+  <div class="viz-body">
+    {highlights.length > 0 && (
+      <ol class="highlights" aria-label="Destaques deste gráfico">
+        {highlights.map((h, i) => (
+          <li>
+            <button type="button" class="hl" data-hl={i} aria-pressed={i === 0 ? 'true' : 'false'}>
+              <span class="hl-n">{i + 1}</span>
+              <span>{h.text}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    )}
+    <div class="viz-canvas" tabindex="0" aria-label={`${chart.title} — gráfico interativo; ${hint}`} set:html={rendered.svg} />
+  </div>
   <script type="application/json" data-spec set:html={spec} />
+  {highlights.length > 0 && <script type="application/json" data-highlights set:html={hlJson} />}
   {chart.note && <p class="viz-note">{chart.note}</p>}
   {table && <DataTable chart={chart} csvHref={csvHref} />}
 </figure>

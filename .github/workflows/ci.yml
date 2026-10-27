@@ -32,6 +32,9 @@ jobs:
           ruff format --check pipelines
       - name: Registro de datasets carrega
         run: python -m dataan list
+      - name: Testes
+        working-directory: pipelines
+        run: python -m pytest -q
 
   web:
     runs-on: ubuntu-latest

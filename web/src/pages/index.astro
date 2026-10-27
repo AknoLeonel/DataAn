@@ -1,98 +1,226 @@
 ---
 import Base from '../layouts/Base.astro';
+import Chart from '../components/Chart.astro';
 import DatasetCard from '../components/DatasetCard.astro';
 import Icon from '../components/Icon.astro';
-import { getCatalog } from '../lib/data';
-import { formatDateTime } from '../lib/format';
+import { getCatalog, getDataset, getStatus } from '../lib/data';
+import { formatDateTime, formatValue } from '../lib/format';
+import { sparkline, minibars } from '../lib/charts/sparkline';
 import { SITE, url } from '../lib/site';
+import { explainError, health } from '../lib/status';
+import type { LineChart } from '../lib/types';
 
 const catalog = getCatalog();
+const status = getStatus();
+const h = health(status);
 const entries = catalog?.datasets ?? [];
 const categories = catalog?.categories ?? [];
 const sources = new Set(entries.flatMap((e) => e.sources.map((s) => s.split(' — ')[0].split(' (')[0])));
+const bySlug = new Map(entries.map((e) => [e.slug, e]));
+
+// Pulso de hoje: indicadores de economia que mudam com frequência.
+const pulseSlugs = ['selic', 'ipca', 'dolar', 'desemprego'];
+const pulse = (pulseSlugs.map((s) => bySlug.get(s)).filter(Boolean) as typeof entries)
+  .concat(entries.filter((e) => !pulseSlugs.includes(e.slug)))
+  .filter((e) => e.headline)
+  .slice(0, 4)
+  .map((e) => {
+    const k = e.headline!;
+    let deltaClass = '';
+    let arrow = '';
+    if (k.delta) {
+      const dir = Math.sign(k.delta.value);
+      arrow = dir > 0 ? '↑ ' : dir < 0 ? '↓ ' : '';
+      if (dir !== 0 && k.delta.good !== 'neutral') deltaClass = (k.delta.good === 'up') === dir > 0 ? 'is-good' : 'is-bad';
+    }
+    const spark = k.spark?.length
+      ? k.spark_kind === 'bars'
+        ? minibars(k.spark, `Últimos períodos de ${k.label}`, 112, 34)
+        : sparkline(k.spark, `Tendência de ${k.label}`, 112, 34)
+      : '';
+    return { e, k, deltaClass, arrow, spark };
+  });
+
+// Faixa de destaques: a primeira leitura de cada área, e avisos de fonte fora do ar.
+const tickerSlugs = ['dengue-capitais', 'qualidade-do-ar', 'temperatura-capitais', 'populacao-uf'];
+const ticker = tickerSlugs
+  .filter((s) => bySlug.has(s))
+  .map((s) => ({ href: url(`/dados/${s}/`), text: getDataset(s).insights[0] }))
+  .filter((t) => t.text);
+for (const d of h?.missing ?? []) ticker.push({ href: url('/status/'), text: `${d.title}: fonte fora do ar no momento, veja o status.` });
+
+// Destaque: IPCA frente ao intervalo da meta.
+let feature: LineChart | null = null;
+let featureUntil = '';
+if (bySlug.has('ipca')) {
+  const ds = getDataset('ipca');
+  const c = ds.charts.find((x) => x.id === 'acumulado-12m');
+  if (c && c.type === 'line') {
+    feature = { ...c, title: 'Onde a inflação está em relação à meta', subtitle: 'IPCA acumulado em 12 meses e o intervalo de tolerância do CMN em cada ano, em %' };
+    featureUntil = ds.data_until ?? '';
+  }
+}
+
+// Conjuntos sem nenhuma versão publicada ainda (a fonte falhou desde o início).
+const unavailable = (status?.datasets ?? []).filter((d) => !d.ok && !bySlug.has(d.slug));
 ---
 <Base description={SITE.description}>
-  <section class="hero container">
-    <p class="eyebrow">Plataforma aberta de dados públicos</p>
-    <h1>Dados públicos do Brasil, explicados em gráficos.</h1>
-    <p class="lead">
-      Economia, saúde, meio ambiente, clima e demografia em um só lugar: coletados de fontes oficiais,
-      validados e atualizados automaticamente todos os dias.
-    </p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="#explorar">Explorar dados <Icon name="arrowRight" /></a>
-      <a class="btn btn-ghost" href={url('/api/')}><Icon name="code" /> API aberta</a>
-    </div>
-    {catalog && (
-      <div class="hero-meta">
-        <span><span class="live-dot" aria-hidden="true" />Atualizado em {formatDateTime(catalog.generated_at)}</span>
-        <span><strong>{entries.length}</strong> conjuntos de dados</span>
-        <span><strong>{categories.length}</strong> áreas</span>
-        <span><strong>{sources.size}</strong> fontes oficiais</span>
+  <div class="container">
+    <section class="hero2">
+      <div class="hero2-copy reveal">
+        {status && h && (
+          <a class:list={['live-chip', { 'is-partial': h.level !== 'good' }]} href={url('/status/')}>
+            <span class="live-dot" aria-hidden="true"></span>
+            Pipeline rodou em {formatDateTime(status.generated_at)} · {h.ok} de {h.total} conjuntos atualizados
+          </a>
+        )}
+        <h1>O Brasil em dados, explicado em movimento.</h1>
+        <p class="lead">
+          Juros, inflação, saúde, ar e clima a partir de fontes oficiais. Cada número vem com contexto: de onde veio,
+          até quando vale e o que mudou.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#explorar">Explorar os dados <Icon name="arrowRight" /></a>
+          <a class="btn btn-ghost" href={url('/api/')}><Icon name="code" /> API aberta</a>
+        </div>
       </div>
-    )}
-  </section>
 
-  <section id="explorar" class="container" data-explore aria-labelledby="explorar-titulo">
-    <div class="section-head">
-      <h2 id="explorar-titulo">Explorar</h2>
-      <span class="muted small js-only" data-count aria-live="polite"></span>
-    </div>
-    {entries.length > 0 ? (
-      <>
-        <div class="filters js-only">
-          <label class="search">
-            <span class="sr-only">Buscar conjuntos de dados</span>
-            <Icon name="search" />
-            <input type="search" placeholder="Buscar: inflação, dengue, PM2.5…" autocomplete="off" enterkeyhint="search" />
-          </label>
-          <div class="chips" role="group" aria-label="Filtrar por área">
-            <button class="chip" type="button" data-filter="todas" aria-pressed="true">Todas</button>
-            {categories.map((c) => (
-              <button class="chip" type="button" data-filter={c.slug} aria-pressed="false">{c.name}</button>
+      {pulse.length > 0 && (
+        <aside class="pulse reveal" aria-labelledby="pulso">
+          <div class="pulse-head">
+            <h2 id="pulso">Pulso de hoje</h2>
+            <span>variação no período indicado</span>
+          </div>
+          <ul class="pulse-list">
+            {pulse.map(({ e, k, deltaClass, arrow, spark }) => (
+              <li>
+                <a class="pulse-row" href={url(`/dados/${e.slug}/`)}>
+                  <span class="pl">
+                    <strong>{k.label}</strong>
+                    <small>dados até {e.data_until ?? k.as_of}</small>
+                  </span>
+                  <span class="pv">
+                    <span class="kpi-value">
+                      <span class="kpi-num" data-countup={k.format.grouping === false ? undefined : JSON.stringify({ v: k.value, f: k.format })}>{formatValue(k.value, k.format, { unit: false })}</span>
+                      {k.format.unit && <span class="unit">{k.format.unit}</span>}
+                    </span>
+                    {k.delta && (
+                      <span class:list={['delta', deltaClass]}>
+                        {arrow}{formatValue(k.delta.value, k.delta.format, { signed: true })} <span class="period">{k.delta.period}</span>
+                      </span>
+                    )}
+                  </span>
+                  {spark && <Fragment set:html={spark} />}
+                </a>
+              </li>
+            ))}
+          </ul>
+          {ticker.length > 0 && (
+            <div class="ticker" data-ticker aria-label="Destaques">
+              {ticker.map((t, i) => (
+                <a class:list={['ticker-item', { 'is-on': i === 0 }]} href={t.href} data-ticker-item tabindex={i === 0 ? undefined : -1}>
+                  <Icon name="info" />
+                  <span>{t.text}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </aside>
+      )}
+    </section>
+
+    {feature && (
+      <section class="card feature reveal" aria-label="Em destaque">
+        <p class="eyebrow"><span class="tag cat-economia">Em destaque · Economia</span></p>
+        <Chart chart={feature} table={false} />
+        <p class="source-line">
+          Fonte: Banco Central (SGS 13522) e metas do CMN · dados até {featureUntil} ·
+          <a href={url('/dados/ipca/')}>ver a página completa</a>
+        </p>
+      </section>
+    )}
+
+    <section id="explorar" data-explore aria-labelledby="explorar-titulo">
+      <div class="section-head">
+        <div>
+          <h2 id="explorar-titulo">Explorar</h2>
+          <p class="muted small js-only" data-count aria-live="polite"></p>
+        </div>
+      </div>
+      {entries.length + unavailable.length > 0 ? (
+        <>
+          <div class="filters js-only">
+            <label class="search">
+              <span class="sr-only">Buscar conjuntos de dados</span>
+              <Icon name="search" />
+              <input type="search" placeholder="Buscar: inflação, dengue, PM2.5…" autocomplete="off" enterkeyhint="search" />
+            </label>
+            <div class="chips" role="group" aria-label="Filtrar por área">
+              <button class="chip" type="button" data-filter="todas" aria-pressed="true">Todas</button>
+              {categories.map((c) => (
+                <button class="chip" type="button" data-filter={c.slug} aria-pressed="false">{c.name}</button>
+              ))}
+            </div>
+          </div>
+          <div class="grid grid-3 stagger">
+            {entries.map((e) => <DatasetCard entry={e} />)}
+            {unavailable.map((d) => (
+              <article class="card ds-card is-unavailable reveal" data-card data-category="" data-search={d.title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()}>
+                <span class="status-pill st-warning"><Icon name="alert" />Fonte indisponível</span>
+                <h3><a href={url('/status/')}>{d.title}</a></h3>
+                <p class="why">{explainError(d.error)} Ainda não há versão anterior para exibir; tentamos de novo na próxima execução.</p>
+              </article>
             ))}
           </div>
+          <p class="empty" data-empty hidden>Nenhum conjunto encontrado. Tente outro termo ou área.</p>
+        </>
+      ) : (
+        <div class="card empty">
+          <p><strong>Os dados ainda estão sendo coletados.</strong></p>
+          <p>O pipeline roda automaticamente a cada publicação e uma vez por dia. Volte em alguns minutos.</p>
         </div>
-        <div class="grid grid-3">
-          {entries.map((e) => <DatasetCard entry={e} />)}
-        </div>
-        <p class="empty" data-empty hidden>Nenhum conjunto encontrado. Tente outro termo ou área.</p>
-      </>
-    ) : (
-      <div class="card empty">
-        <p><strong>Os dados ainda estão sendo coletados.</strong></p>
-        <p>O pipeline roda automaticamente a cada publicação e uma vez por dia. Volte em alguns minutos.</p>
-      </div>
-    )}
-  </section>
+      )}
+    </section>
 
-  <section class="container" aria-labelledby="como-funciona">
-    <div class="section-head"><h2 id="como-funciona">Como funciona</h2></div>
-    <ol class="grid grid-3 steps">
-      <li class="card">
-        <h3>Coleta automática</h3>
-        <p class="muted">
-          Todos os dias, o pipeline consulta APIs oficiais (Banco Central, IBGE, Fiocruz, NASA, Copernicus),
-          com retentativas e limites de tempo.
-        </p>
-      </li>
-      <li class="card">
-        <h3>Validação e análise</h3>
-        <p class="muted">
-          Cada conjunto passa por um contrato de dados e checagens de qualidade. Previsões só são publicadas com
-          backtest comparado a um modelo ingênuo.
-        </p>
-      </li>
-      <li class="card">
-        <h3>Publicação aberta</h3>
-        <p class="muted">
-          Se uma fonte falha, a última versão válida continua no ar, sinalizada. Tudo fica disponível em{' '}
-          <a href={url('/api/')}>JSON e CSV</a>, e o <a href={url('/status/')}>status</a> é público.
-        </p>
-      </li>
-    </ol>
-  </section>
+    <section aria-labelledby="como-funciona">
+      <div class="section-head">
+        <div>
+          <h2 id="como-funciona">Do dado oficial ao gráfico, todo dia</h2>
+          <p class="muted small">Se uma fonte cai, a última versão válida continua no ar e a página avisa.</p>
+        </div>
+      </div>
+      <ol class="flow-steps stagger">
+        <li class="reveal">
+          <div class="card">
+            <span class="num">01</span>
+            <h3>Coleta</h3>
+            <p class="muted small">APIs oficiais consultadas com retentativa, limite de tempo e servidor alternativo quando existe.</p>
+            <div class="stat">{sources.size}<small>fontes oficiais</small></div>
+          </div>
+          <span class="flow-connector" aria-hidden="true"><span class="flow-dot"></span><span class="flow-dot"></span></span>
+        </li>
+        <li class="reveal">
+          <div class="card">
+            <span class="num">02</span>
+            <h3>Validação</h3>
+            <p class="muted small">Contrato de dados e checagens de qualidade antes de publicar qualquer número.</p>
+            <div class="stat">{h?.total ?? entries.length}<small>conjuntos de dados</small></div>
+          </div>
+          <span class="flow-connector" aria-hidden="true"><span class="flow-dot"></span><span class="flow-dot"></span></span>
+        </li>
+        <li class="reveal">
+          <div class="card">
+            <span class="num">03</span>
+            <h3>Publicação</h3>
+            <p class="muted small">Site estático, <a href={url('/api/')}>JSON e CSV abertos</a> e um <a href={url('/status/')}>status público</a> de cada execução.</p>
+            <div class="stat">06:17<small>todo dia</small></div>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </div>
 </Base>
 <script>
   import '../scripts/explore';
+  import '../scripts/charts';
 </script>

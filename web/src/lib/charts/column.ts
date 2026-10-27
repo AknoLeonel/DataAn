@@ -3,7 +3,7 @@ import { formatTick, formatValue } from '../format';
 import type { ColumnChart } from '../types';
 import { barPath, clamp, esc, linear, nice, r1, svgOpen, textWidth, type Rendered } from './common';
 
-export function renderColumn(spec: ColumnChart, width: number): Rendered {
+export function renderColumn(spec: ColumnChart, width: number, animate = false): Rendered {
   const items = spec.items;
   const height = Math.round(clamp(width * 0.5, 210, 300));
   const values = items.map((i) => i.value);
@@ -62,7 +62,7 @@ export function renderColumn(spec: ColumnChart, width: number): Rendered {
     const yv = y(it.value);
     const top = Math.min(y0, yv);
     const h = Math.max(Math.abs(yv - y0), 1);
-    parts.push(`<path class="bar ${cls(it.value)}" data-i="${i}" d="${barPath(cx - barW / 2, top, barW, h, it.value >= 0 ? 'top' : 'bottom')}"/>`);
+    parts.push(`<path class="bar v ${cls(it.value)}${it.value < 0 ? ' rev' : ''}" data-i="${i}" d="${barPath(cx - barW / 2, top, barW, h, it.value >= 0 ? 'top' : 'bottom')}"/>`);
     if (labeled.has(i)) {
       const ly = it.value >= 0 ? yv - 6 : yv + 14;
       const label = formatValue(it.value, spec.format, { unit: false, signed: spec.diverging });
@@ -76,7 +76,7 @@ export function renderColumn(spec: ColumnChart, width: number): Rendered {
   const last = items[items.length - 1];
   const aria = `${spec.title}. Gráfico de colunas com ${items.length} períodos; último (${last.label}): ${formatValue(last.value, spec.format)}.`;
   return {
-    svg: svgOpen(width, height, aria) + parts.join('') + '</svg>',
+    svg: svgOpen(width, height, aria, animate) + parts.join('') + '</svg>',
     height,
     interaction: {
       kind: 'band',

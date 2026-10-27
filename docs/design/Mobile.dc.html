@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DataAn — Dengue no celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0A0D12}
+a{color:#8DBBF2}a:hover{color:#B9D5F8}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.rise{animation:rise .6s cubic-bezier(.22,1,.36,1) both}
+.draw{stroke-dasharray:1;animation:draw 1.2s cubic-bezier(.65,0,.35,1) both}
+.fadein{animation:fadein .8s ease-out both}
+.morph{transition:d .6s cubic-bezier(.22,1,.36,1),cx .6s cubic-bezier(.22,1,.36,1),cy .6s cubic-bezier(.22,1,.36,1)}
+.seg{transition:background .4s,transform .4s cubic-bezier(.22,1,.36,1)}
+.chips{scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.no-motion *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="{{ rootClass }}" style="width: 390px; height: 844px; overflow-y: auto; background: #0A0D12; color: #EEF2F6; font-family: 'Geist', system-ui, sans-serif; font-size: 15px; line-height: 1.45">
+  <header style="position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #0A0D12; border-bottom: 1px solid rgba(255,255,255,0.08)">
+    <a href="Main.dc.html" aria-label="Voltar ao início" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: #EEF2F6">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <div style="flex: 1; min-width: 0">
+      <div style="font-size: 12px; color: #A9B4C0">Saúde</div>
+      <h1 style="margin: 0; font-size: 18px; letter-spacing: -0.01em">Dengue nas capitais</h1>
+    </div>
+    <button type="button" aria-label="Compartilhar" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #11161D; color: #EEF2F6">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg>
+    </button>
+  </header>
+
+  <div role="group" aria-label="Capital" class="chips" style="display: flex; gap: 8px; overflow-x: auto; padding: 14px 16px 4px">
+    <sc-for list="{{ cities }}" as="c" hint-placeholder-count="6">
+      <button type="button" aria-pressed="{{ c.pressed }}" onClick="{{ c.pick }}" style="flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; background: {{ c.bg }}; color: {{ c.fg }}; border: 1px solid {{ c.border }}">{{ c.name }}</button>
+    </sc-for>
+  </div>
+
+  <main style="padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 14px">
+    <section aria-label="Nível de alerta" class="rise" style="padding: 16px; border-radius: 18px; background: #11161D; border: 1px solid rgba(255,255,255,0.08)">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ lv.color }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3z"></path><path d="M12 10v4M12 17.5v.01"></path></svg>
+        <div style="font-weight: 650">Alerta {{ lv.name }}</div>
+        <div style="margin-left: auto; font-size: 12px; color: #8C97A5">semana de 11/10</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-top: 12px">
+        <sc-for list="{{ lv.segs }}" as="s" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span class="seg" style="height: 8px; border-radius: 4px; background: {{ s.bg }}; transform: scaleY({{ s.scale }})"></span>
+            <span style="font-size: 11px; color: {{ s.fg }}; font-weight: {{ s.weight }}">{{ s.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 14px; color: #A9B4C0">{{ lv.text }}</p>
+    </section>
+
+    <section aria-labelledby="casos" class="rise" style="padding: 16px; border-radius: 18px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); animation-delay: 80ms">
+      <h2 id="casos" style="margin: 0; font-size: 14px; font-weight: 500; color: #A9B4C0">Casos estimados · últimas 4 semanas</h2>
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+        <span style="font-size: 40px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">{{ kpi.cases }}</span>
+        <span style="font-size: 14px; font-weight: 600; color: {{ kpi.deltaColor }}">{{ kpi.delta }}</span>
+      </div>
+      <div aria-live="polite" style="display: flex; justify-content: space-between; align-items: baseline; min-height: 44px; margin-top: 4px; padding: 8px 12px; border-radius: 12px; background: #18202A; font-size: 13px">
+        <span style="color: #A9B4C0">{{ rd.label }}</span>
+        <strong style="font-size: 16px; font-variant-numeric: tabular-nums">{{ rd.value }}</strong>
+      </div>
+      <svg viewBox="0 0 358 200" width="100%" role="img" aria-label="{{ chartAria }}" style="display: block; margin-top: 8px; overflow: visible; font-family: 'Geist Mono', monospace; touch-action: pan-y">
+        <sc-for list="{{ yTicks }}" as="yt" hint-placeholder-count="3">
+          <line x1="30" x2="356" y1="{{ yt.y }}" y2="{{ yt.y }}" stroke="rgba(255,255,255,0.07)"></line>
+          <text x="24" y="{{ yt.y }}" dy="4" text-anchor="end" font-size="10" fill="#8C97A5">{{ yt.label }}</text>
+        </sc-for>
+        <rect x="{{ fc.x }}" y="8" width="{{ fc.w }}" height="164" fill="rgba(217,89,38,0.07)"></rect>
+        <text x="{{ fc.tx }}" y="20" font-size="10" fill="#D95926" text-anchor="middle">previsão</text>
+        <path class="morph fadein" d="{{ fan }}" style="d: path('{{ fan }}')" fill="rgba(217,89,38,0.22)"></path>
+        <path class="morph draw" pathLength="1" d="{{ hist }}" style="d: path('{{ hist }}')" fill="none" stroke="#3987E5" stroke-width="2.2" stroke-linejoin="round"></path>
+        <path class="morph" d="{{ proj }}" style="d: path('{{ proj }}')" fill="none" stroke="#D95926" stroke-width="2.2" stroke-dasharray="4 4"></path>
+        <text x="30" y="192" font-size="10" fill="#8C97A5">abr</text>
+        <text x="190" y="192" font-size="10" fill="#8C97A5" text-anchor="middle">jul</text>
+        <text x="356" y="192" font-size="10" fill="#8C97A5" text-anchor="end">nov</text>
+        <sc-if value="{{ sc.show }}" hint-placeholder-val="{{ false }}">
+          <line x1="{{ sc.x }}" x2="{{ sc.x }}" y1="8" y2="172" stroke="#EEF2F6" stroke-opacity="0.5"></line>
+          <circle cx="{{ sc.x }}" cy="{{ sc.y }}" r="5.5" fill="{{ sc.color }}" stroke="#11161D" stroke-width="2.5"></circle>
+        </sc-if>
+        <rect x="30" y="0" width="326" height="176" fill="transparent" onPointerMove="{{ onScrub }}" onPointerDown="{{ onScrub }}" onPointerLeave="{{ onLeave }}"></rect>
+      </svg>
+      <div style="display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: #A9B4C0">
+        <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; border-radius: 2px; background: #3987E5"></span>estimado</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 0; border-top: 2px dashed #D95926"></span>previsão</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 10px; border-radius: 2px; background: rgba(217,89,38,0.3)"></span>faixa de 80%</span>
+      </div>
+      <p style="margin: 8px 0 0; font-size: 12px; color: #8C97A5">Arraste sobre o gráfico para ver cada semana.</p>
+    </section>
+
+    <section aria-labelledby="modelo" class="rise" style="padding: 16px; border-radius: 18px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); animation-delay: 160ms">
+      <h2 id="modelo" style="margin: 0 0 4px; font-size: 16px">A previsão é confiável?</h2>
+      <p style="margin: 0 0 12px; font-size: 13px; color: #A9B4C0">Erro médio nas últimas 26 semanas, prevendo só com o passado.</p>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span>Modelo</span><strong style="font-variant-numeric: tabular-nums">{{ model.mae }} casos</strong></div>
+          <div style="height: 10px; border-radius: 5px; background: #18202A; margin-top: 4px"><div style="height: 10px; border-radius: 5px; background: #3987E5; width: {{ model.pct }}%; transition: width .6s cubic-bezier(.22,1,.36,1)"></div></div>
+        </div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span>Repetir a última semana</span><strong style="font-variant-numeric: tabular-nums">{{ model.base }} casos</strong></div>
+          <div style="height: 10px; border-radius: 5px; background: #18202A; margin-top: 4px"><div style="height: 10px; border-radius: 5px; background: #4A5562; width: 100%"></div></div>
+        </div>
+      </div>
+      <p style="margin: 12px 0 0; font-size: 14px; font-weight: 600">{{ model.verdict }}</p>
+    </section>
+
+    <div style="display: flex; gap: 10px">
+      <a href="#" style="flex: 1; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; background: #3987E5; color: #FFFFFF; text-decoration: none; font-weight: 600">Baixar CSV</a>
+      <a href="#" style="flex: 1; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14); color: #EEF2F6; text-decoration: none; font-weight: 600">Metodologia</a>
+    </div>
+    <p style="margin: 0; font-size: 12px; color: #8C97A5">Fonte: InfoDengue (Fiocruz/FGV) · dados até a semana de 11/10/2026 · valores de exemplo neste protótipo.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"animate":{"editor":"boolean","default":true},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { city: 0, scrub: null };
+  }
+  renderVals() {
+    var self = this;
+    var cityDefs = [
+      { name: "Rio de Janeiro", scale: 900, phase: 0.2, level: 2, mae: 61, base: 88 },
+      { name: "São Paulo", scale: 1500, phase: 0.5, level: 3, mae: 140, base: 151 },
+      { name: "Belo Horizonte", scale: 700, phase: 0.1, level: 1, mae: 42, base: 47 },
+      { name: "Brasília", scale: 1100, phase: 0.8, level: 4, mae: 120, base: 109 },
+      { name: "Goiânia", scale: 600, phase: 0.4, level: 2, mae: 33, base: 41 },
+      { name: "Curitiba", scale: 300, phase: 0.6, level: 1, mae: 12, base: 15 }
+    ];
+    var c = cityDefs[this.state.city];
+    var H = 26, F = 4, N = H + F;
+    var vals = [];
+    for (var i = 0; i < N; i++) {
+      var w = i / N;
+      vals.push(c.scale * (0.25 + 0.75 * Math.pow(Math.max(0, Math.cos((w - c.phase) * Math.PI * 1.3)), 2)) + c.scale * 0.04 * Math.sin(i * 1.9));
+    }
+    var max = Math.max.apply(null, vals) * 1.35;
+    var L = 30, R = 356, T = 8, B = 172;
+    var X = function (i) { return L + i * (R - L) / (N - 1); };
+    var Y = function (v) { return B - v / max * (B - T); };
+    var hist = vals.slice(0, H).map(function (v, i) { return (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1); }).join("");
+    var proj = vals.slice(H - 1).map(function (v, k) { return (k ? "L" : "M") + X(H - 1 + k).toFixed(1) + "," + Y(v).toFixed(1); }).join("");
+    var up = vals.slice(H - 1).map(function (v, k) { return (k ? "L" : "M") + X(H - 1 + k).toFixed(1) + "," + Y(v * (1 + 0.12 * k)).toFixed(1); }).join("");
+    var lo = vals.slice(H - 1).reverse().map(function (v, k) { return "L" + X(N - 1 - k).toFixed(1) + "," + Y(v * (1 - 0.1 * (F - k))).toFixed(1); }).join("");
+    var fan = up + lo + "Z";
+    var niceMax = max > 1000 ? Math.round(max / 500) * 500 : Math.round(max / 100) * 100;
+    var yTicks = [0, niceMax / 2, niceMax].map(function (v) { return { y: Y(v).toFixed(1), label: v >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : String(v) }; });
+
+    var last4 = vals.slice(H - 4, H).reduce(function (a, b) { return a + b; }, 0);
+    var prev4 = vals.slice(H - 8, H - 4).reduce(function (a, b) { return a + b; }, 0);
+    var d = (last4 / prev4 - 1) * 100;
+
+    var LEVELS = [["verde", "#4CC24C", "Baixa transmissão."], ["amarelo", "#FAB219", "Condições favoráveis à transmissão."], ["laranja", "#EC835A", "Transmissão sustentada na cidade."], ["vermelho", "#E66767", "Atividade acima do esperado para a época."]];
+    var lv = LEVELS[c.level - 1];
+    var segs = LEVELS.map(function (l, i) {
+      var on = i === c.level - 1;
+      return { label: l[0], bg: i < c.level ? l[1] : "#18202A", fg: on ? "#EEF2F6" : "#8C97A5", weight: on ? 700 : 500, scale: on ? 1.5 : 1 };
+    });
+
+    var sc = { show: false, x: 0, y: 0, color: "#3987E5" };
+    var rd = { label: "Semana mais recente", value: Math.round(vals[H - 1]).toLocaleString("pt-BR") + " casos" };
+    if (this.state.scrub !== null) {
+      var s = this.state.scrub, isF = s >= H;
+      sc = { show: true, x: X(s).toFixed(1), y: Y(vals[s]).toFixed(1), color: isF ? "#D95926" : "#3987E5" };
+      rd = { label: isF ? "Previsão · daqui a " + (s - H + 1) + (s - H + 1 === 1 ? " semana" : " semanas") : s === H - 1 ? "Semana mais recente" : (H - 1 - s) + (H - 1 - s === 1 ? " semana atrás" : " semanas atrás"), value: Math.round(vals[s]).toLocaleString("pt-BR") + " casos" };
+    }
+    var skill = 1 - c.mae / c.base;
+
+    return {
+      rootClass: this.props.animate === false ? "no-motion" : "",
+      cities: cityDefs.map(function (x, i) {
+        var on = self.state.city === i;
+        return { name: x.name, pressed: on ? "true" : "false", bg: on ? "#EEF2F6" : "#11161D", fg: on ? "#0A0D12" : "#EEF2F6", border: on ? "#EEF2F6" : "rgba(255,255,255,0.1)", pick: function () { self.setState({ city: i, scrub: null }); } };
+      }),
+      lv: { name: lv[0], color: lv[1], text: lv[2], segs: segs },
+      kpi: { cases: Math.round(last4).toLocaleString("pt-BR"), delta: (d >= 0 ? "↑ +" : "↓ −") + Math.abs(d).toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + "% vs. 4 sem. antes", deltaColor: d >= 0 ? "#F07B7B" : "#4CC24C" },
+      hist: hist, proj: proj, fan: fan, yTicks: yTicks,
+      fc: { x: X(H - 1).toFixed(1), w: (R - X(H - 1)).toFixed(1), tx: ((X(H - 1) + R) / 2).toFixed(1) },
+      sc: sc, rd: rd,
+      chartAria: "Casos semanais estimados em " + c.name + " nas últimas 26 semanas e previsão de 4 semanas.",
+      model: { mae: c.mae, base: c.base, pct: Math.min(100, c.mae / c.base * 100).toFixed(0), verdict: skill > 0 ? "Erra " + Math.round(skill * 100) + "% menos que repetir a última semana." : "Não superou a referência aqui: use com cautela." },
+      onScrub: function (e) {
+        var r = e.currentTarget.getBoundingClientRect();
+        var f = (e.clientX - r.left) / r.width;
+        self.setState({ scrub: Math.max(0, Math.min(N - 1, Math.round(f * (N - 1)))) });
+      },
+      onLeave: function (e) { if (e.pointerType === "mouse") self.setState({ scrub: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

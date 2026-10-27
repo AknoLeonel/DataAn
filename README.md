@@ -41,7 +41,7 @@ flowchart LR
   CDN --> API[API estática JSON/CSV]
 ```
 
-Decisões e alternativas estão em [`docs/arquitetura.md`](docs/arquitetura.md).
+Decisões e alternativas estão em [`docs/arquitetura.md`](docs/arquitetura.md). O design (telas, motion e regras visuais) está em [`docs/design/`](docs/design/README.md).
 
 **Destaques técnicos**
 
@@ -49,6 +49,7 @@ Decisões e alternativas estão em [`docs/arquitetura.md`](docs/arquitetura.md).
 - **Qualidade antes de publicar**: volume mínimo, faixas plausíveis, atraso máximo da fonte, ordem temporal e colunas do CSV iguais às documentadas.
 - **Operação resiliente**: retentativa com backoff, falha isolada por dataset, fallback para a última versão publicada e página de status pública com histórico.
 - **Estatística honesta**: a previsão de dengue usa Holt amortecido em escala log, validação com origem móvel (só passado → futuro) e é comparada com a previsão ingênua; o intervalo de 80% vem dos erros do próprio backtest. O resultado aparece mesmo quando o modelo perde.
+- **Motion com propósito**: linhas que se desenham e números que contam até o valor ao entrar na tela, troca de período sem perder o contexto e destaques em texto que marcam no gráfico o trecho de onde vêm. Com "reduzir movimento" ativado, tudo aparece direto no estado final.
 - **Gráficos próprios em SVG**, sem biblioteca: renderizados no build (funcionam sem JS) e redesenhados no navegador com tooltip, crosshair, toque e teclado. A paleta foi validada para daltonismo, com modo escuro próprio e tabela equivalente para cada gráfico.
 - **SEO**: HTML estático, `sitemap.xml`, canonical, Open Graph e JSON-LD `Dataset`, elegível ao Google Dataset Search.
 - **Segurança**: CSP com hashes (sem `unsafe-inline`), HSTS e bloqueio de iframe via `vercel.json`, Actions sem permissões. Detalhes em [`SECURITY.md`](SECURITY.md).

@@ -1,6 +1,6 @@
 ---
 import { formatValue } from '../lib/format';
-import { sparkline } from '../lib/charts/sparkline';
+import { bullet, minibars, sparkline } from '../lib/charts/sparkline';
 import type { Kpi } from '../lib/types';
 import Icon from './Icon.astro';
 import StatusPill from './StatusPill.astro';
@@ -13,6 +13,8 @@ interface Props {
 const { kpi, tag: Tag = 'div', card = true } = Astro.props;
 const value = formatValue(kpi.value, kpi.format, { unit: false });
 const unit = kpi.format.unit;
+// Contagem até o valor no navegador; anos e números sem agrupamento não contam.
+const countup = kpi.format.grouping === false ? undefined : JSON.stringify({ v: kpi.value, f: kpi.format });
 
 let deltaClass = '';
 let deltaIcon: 'arrowUp' | 'arrowDown' | 'minus' = 'minus';
@@ -29,13 +31,25 @@ if (kpi.delta) {
   }
   deltaText = formatValue(v, kpi.delta.format, { signed: true });
 }
-const spark = kpi.spark?.length ? sparkline(kpi.spark, `Tendência recente de ${kpi.label}`) : '';
+
+let trend = '';
+if (kpi.spark?.length) {
+  trend = kpi.spark_kind === 'bars' ? minibars(kpi.spark, `Últimos ${kpi.spark.length} períodos de ${kpi.label}`) : sparkline(kpi.spark, `Tendência recente de ${kpi.label}`);
+}
+const fmtRange = (v: number) => formatValue(v, kpi.format, { unit: false, decimals: Math.min(kpi.format.decimals, 1) });
+const ruler = kpi.range
+  ? bullet(
+      { value: kpi.value, ...kpi.range },
+      fmtRange,
+      `${kpi.label}: ${formatValue(kpi.value, kpi.format)}${kpi.range.lo !== undefined && kpi.range.hi !== undefined ? `; ${kpi.range.label ?? 'referência'} de ${fmtRange(kpi.range.lo)} a ${fmtRange(kpi.range.hi)}` : kpi.range.mark !== undefined ? `; ${kpi.range.label ?? 'referência'} ${fmtRange(kpi.range.mark)}` : ''}`,
+    )
+  : '';
 ---
 <Tag class:list={['kpi', { card }]}>
-  <span class="kpi-label">{kpi.label}</span>
+  <span class="kpi-label">{kpi.label}{kpi.as_of && kpi.range && <span class="kpi-asof"> · {kpi.as_of}</span>}</span>
   <div class="kpi-row">
-    <span class="kpi-value">{value}{unit && <span class="unit">{unit}</span>}</span>
-    {spark && <Fragment set:html={spark} />}
+    <span class="kpi-value"><span class="kpi-num" data-countup={countup}>{value}</span>{unit && <span class="unit">{unit}</span>}</span>
+    {trend && !kpi.range && !kpi.dots && <Fragment set:html={trend} />}
   </div>
   {kpi.delta && (
     <span class:list={['delta', deltaClass]}>
@@ -45,6 +59,26 @@ const spark = kpi.spark?.length ? sparkline(kpi.spark, `Tendência recente de ${
       {deltaSr && <span class="sr-only">{deltaSr}</span>}
     </span>
   )}
+  {ruler && <Fragment set:html={ruler} />}
+  {kpi.dots && (
+    <>
+      <ol class="kpi-dots" aria-label={kpi.label}>
+        {kpi.dots.map((on, i) => (
+          <li>
+            <span class:list={['kpi-dot', { on }]} title={kpi.dot_labels?.[i]}></span>
+            <span class="kpi-dot-label" aria-hidden="true">{kpi.dot_labels?.[i]}</span>
+            <span class="sr-only">{on ? kpi.dot_legend?.[0] ?? 'sim' : kpi.dot_legend?.[1] ?? 'não'}</span>
+          </li>
+        ))}
+      </ol>
+      {kpi.dot_legend && (
+        <span class="kpi-dot-legend" aria-hidden="true">
+          <span><span class="kpi-dot on"></span>{kpi.dot_legend[0]}</span>
+          <span><span class="kpi-dot"></span>{kpi.dot_legend[1]}</span>
+        </span>
+      )}
+    </>
+  )}
   {kpi.status && kpi.status_label && <StatusPill level={kpi.status} label={kpi.status_label} />}
-  {kpi.as_of && <span class="kpi-meta">{kpi.as_of}</span>}
+  {kpi.as_of && !kpi.range && <span class="kpi-meta">{kpi.as_of}</span>}
 </Tag>

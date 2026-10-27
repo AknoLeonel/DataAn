@@ -1,9 +1,11 @@
-// Interatividade dos gráficos: redesenha na largura real do contêiner e adiciona
-// tooltip, crosshair, toque e navegação por teclado. Sem dependências.
-import { render, type Rendered } from '../lib/charts';
+// Interatividade dos gráficos: redesenha na largura real do contêiner, anima a entrada
+// quando o gráfico aparece na tela e adiciona tooltip, crosshair, toque, teclado,
+// troca de período e destaques ligados ao texto. Sem dependências.
+import { render, sliceYears, type Focus, type Rendered } from '../lib/charts';
 import type { SingleChart } from '../lib/types';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -12,17 +14,30 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
   return node;
 }
 
-function setup(fig: HTMLElement): void {
-  const specEl = fig.querySelector<HTMLScriptElement>(':scope > script[data-spec]');
-  const canvas = fig.querySelector<HTMLElement>(':scope > .viz-canvas');
-  if (!specEl || !canvas) return;
-  let spec: SingleChart;
+function readJson<T>(root: HTMLElement, selector: string): T | null {
+  const node = root.querySelector<HTMLScriptElement>(selector);
+  if (!node) return null;
   try {
-    spec = JSON.parse(specEl.textContent || '');
+    return JSON.parse(node.textContent || '') as T;
   } catch {
-    return;
+    return null;
   }
-  const compact = fig.dataset.compact === '1';
+}
+
+/** Barras entram em cascata: atraso por posição (via CSSOM, permitido pela CSP). */
+function stagger(svg: SVGSVGElement): void {
+  const bars = svg.querySelectorAll<SVGElement>('.bar');
+  const step = Math.min(40, 700 / Math.max(1, bars.length));
+  bars.forEach((b, i) => (b.style.animationDelay = `${Math.round(i * step)}ms`));
+}
+
+function setup(fig: HTMLElement): void {
+  const spec = readJson<SingleChart>(fig, 'script[data-spec]');
+  const canvas = fig.querySelector<HTMLElement>('.viz-canvas');
+  if (!spec || !canvas) return;
+  const highlights = readJson<Focus[]>(fig, 'script[data-highlights]') ?? [];
+  // Painel de pequenos múltiplos vira gráfico completo quando é o único visível.
+  const isCompact = () => fig.dataset.compact === '1' && !fig.closest('.is-single');
 
   const tip = el('div', 'viz-tip');
   tip.hidden = true;
@@ -37,6 +52,11 @@ function setup(fig: HTMLElement): void {
   let overlay: SVGGElement | null = null;
   let lastW = 0;
   let active = -1;
+  let years: number | null = null;
+  let focusIdx = highlights.length ? 0 : -1;
+  let animateNext = false;
+  // Até entrar na tela, fica o SVG do build; a primeira renderização no navegador já é animada.
+  let pending = !reduceMotion && 'IntersectionObserver' in window;
 
   const count = () => {
     const it = rendered?.interaction;
@@ -44,17 +64,56 @@ function setup(fig: HTMLElement): void {
     return it.kind === 'x' ? it.xs.length : it.bands.length;
   };
 
-  function draw(): void {
+  function draw(force = false): void {
+    if (pending) return;
     const w = Math.round(canvas!.clientWidth);
-    if (!w || Math.abs(w - lastW) < 2) return;
+    if (!w || (!force && Math.abs(w - lastW) < 2)) return;
     lastW = w;
-    rendered = render(spec, w, compact);
+    const animate = animateNext && !reduceMotion;
+    animateNext = false;
+    rendered = render(sliceYears(spec!, years), w, { compact: isCompact(), animate, focus: focusIdx >= 0 ? highlights[focusIdx] : null });
     canvas!.innerHTML = rendered.svg; // SVG gerado por nós, com textos escapados
     svg = canvas!.querySelector('svg');
     overlay = null;
+    if (animate && svg) stagger(svg);
     if (active >= 0 && active < count()) show(active, false);
     else hide();
   }
+
+  // Períodos (1A, 5A, 10A, Máx)
+  const rangeBtns = Array.from(fig.querySelectorAll<HTMLButtonElement>('[data-range]'));
+  const yearsOf = (b: HTMLButtonElement) => (b.dataset.range === 'all' ? null : Number(b.dataset.range));
+  function setRange(y: number | null): void {
+    years = y;
+    rangeBtns.forEach((b) => b.setAttribute('aria-pressed', String(yearsOf(b) === y)));
+  }
+  rangeBtns.forEach((b) =>
+    b.addEventListener('click', () => {
+      setRange(yearsOf(b));
+      active = -1;
+      animateNext = true;
+      draw(true);
+    }),
+  );
+
+  // Destaques: escolher um texto marca no gráfico o trecho de onde ele vem.
+  const hlBtns = Array.from(fig.querySelectorAll<HTMLButtonElement>('[data-hl]'));
+  function pick(i: number): void {
+    if (i === focusIdx) return;
+    focusIdx = i;
+    hlBtns.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+    if (years !== null) {
+      const shown = sliceYears(spec!, years);
+      const first = Math.min(...(shown.type === 'line' ? shown.series.flatMap((s) => s.points.map(([d]) => Date.parse(d))) : [0]));
+      if (Date.parse(highlights[i].start) < first) setRange(null);
+    }
+    draw(true);
+  }
+  hlBtns.forEach((b, i) => {
+    b.addEventListener('click', () => pick(i));
+    b.addEventListener('mouseenter', () => pick(i));
+    b.addEventListener('focus', () => pick(i));
+  });
 
   function toLocal(e: PointerEvent): { x: number; y: number } | null {
     if (!svg) return null;
@@ -199,8 +258,37 @@ function setup(fig: HTMLElement): void {
     show(next, true);
   });
 
+  if (pending) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        pending = false;
+        animateNext = true;
+        draw(true);
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(canvas);
+  }
   new ResizeObserver(() => draw()).observe(canvas);
   draw();
 }
 
+// Pequenos múltiplos: escolher uma entidade (ex.: uma capital) mostra só o painel dela, maior.
+function setupGridFilter(root: HTMLElement): void {
+  const grid = root.querySelector<HTMLElement>('.viz-grid');
+  const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-panel-filter]'));
+  if (!grid || !buttons.length) return;
+  buttons.forEach((b) =>
+    b.addEventListener('click', () => {
+      const id = b.dataset.panelFilter!;
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      grid.classList.toggle('is-single', id !== 'todas');
+      grid.querySelectorAll<HTMLElement>('[data-panel]').forEach((p) => (p.hidden = id !== 'todas' && p.dataset.panel !== id));
+    }),
+  );
+}
+
 document.querySelectorAll<HTMLElement>('figure[data-chart]').forEach(setup);
+document.querySelectorAll<HTMLElement>('[data-grid]').forEach(setupGridFilter);

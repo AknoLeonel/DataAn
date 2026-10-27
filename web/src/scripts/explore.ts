@@ -9,7 +9,7 @@ if (root) {
   const counter = root.querySelector<HTMLElement>('[data-count]');
 
   const norm = (s: string) =>
-    s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
   const params = new URLSearchParams(location.search);
   let query = params.get('q') ?? '';

@@ -1,30 +1,38 @@
 ---
-import type { Chart as ChartSpec } from '../lib/types';
+import type { Chart as ChartSpec, Highlight } from '../lib/types';
 import Chart from './Chart.astro';
 import DataTable from './DataTable.astro';
 
 interface Props {
   chart: ChartSpec;
   csvHref?: string;
+  highlights?: Highlight[];
 }
-const { chart, csvHref } = Astro.props;
+const { chart, csvHref, highlights = [] } = Astro.props;
+const mine = highlights.filter((h) => h.chart === chart.id);
 // Pequenos múltiplos compartilham uma legenda; cada painel é um gráfico próprio.
 const legend =
   chart.type === 'grid'
-    ? chart.charts[0].series.map((s) => ({ name: s.name, cls: `s${s.color}`, dashed: s.style === 'dashed' }))
+    ? chart.charts[0].series.map((s) => ({ name: s.name, cls: `s${s.color}`, dashed: s.style === 'dashed', band: !!s.band }))
     : [];
 ---
-<section class="card" aria-labelledby={`h-${chart.id}`}>
+<section class="card reveal" aria-labelledby={`h-${chart.id}`}>
   {chart.type === 'grid' ? (
-    <div class="viz">
+    <div class="viz" data-grid>
       <div class="viz-head">
         <h2 id={`h-${chart.id}`}>{chart.title}</h2>
         {chart.subtitle && <p>{chart.subtitle}</p>}
       </div>
+      <div class="chips js-only" role="group" aria-label="Mostrar">
+        <button type="button" class="chip" data-panel-filter="todas" aria-pressed="true">Todas</button>
+        {chart.charts.map((c) => (
+          <button type="button" class="chip" data-panel-filter={c.id} aria-pressed="false">{c.title.replace(/\s*\(.*\)$/, '')}</button>
+        ))}
+      </div>
       {legend.length > 1 && (
         <ul class="legend" aria-label="Legenda">
           {legend.map((l) => (
-            <li><span class:list={['key', 'key-line', l.cls, { dashed: l.dashed }]} />{l.name}</li>
+            <li><span class:list={['key', 'key-line', l.cls, { dashed: l.dashed }]} />{l.name}{l.band && ' e faixa de 80%'}</li>
           ))}
         </ul>
       )}
@@ -35,6 +43,6 @@ const legend =
       <DataTable chart={chart} csvHref={csvHref} />
     </div>
   ) : (
-    <Chart chart={chart} csvHref={csvHref} />
+    <Chart chart={chart} csvHref={csvHref} highlights={mine} />
   )}
 </section>

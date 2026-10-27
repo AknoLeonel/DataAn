@@ -12,6 +12,7 @@ from dataan.models import (
     Column,
     ColumnChart,
     Kpi,
+    KpiRange,
     LineChart,
     RefLine,
     Series,
@@ -108,6 +109,9 @@ def qualidade_do_ar() -> Build:
             value=worst_val,
             format=num(1, UG),
             as_of=worst_city,
+            range=KpiRange(
+                min=0, max=max(30.0, round(worst_val * 1.25)), mark=WHO_PM25_24H, label="OMS"
+            ),
             status="serious" if worst_val > WHO_PM25_24H else "good",
             status_label="Acima da diretriz da OMS"
             if worst_val > WHO_PM25_24H

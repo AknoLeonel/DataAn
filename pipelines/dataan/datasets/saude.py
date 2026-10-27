@@ -11,6 +11,7 @@ from dataan.analysis.forecast import holt_forecast
 from dataan.analysis.quality import check_series
 from dataan.analysis.series import br_date, fmt_num, signed, to_points
 from dataan.models import (
+    Badge,
     BarChart,
     BarItem,
     Column,
@@ -124,6 +125,8 @@ def dengue_capitais() -> Build:
             (ts.strftime("%Y-%m-%d"), round(float(lo), 1), round(float(hi), 1))
             for ts, lo, hi in zip(fc.index, fc.lower, fc.upper, strict=True)
         ]
+        level = int(df["nivel"].dropna().iloc[-1]) if df["nivel"].notna().any() else 1
+        alerts.append((city, level))
         charts.append(
             LineChart(
                 id=slugify(city),
@@ -148,6 +151,7 @@ def dengue_capitais() -> Build:
                     ),
                 ],
                 marker=(anchor[0], "hoje"),
+                badge=Badge(status=LEVELS[level][0], label=f"Alerta {LEVELS[level][1]}"),
             )
         )
 
@@ -157,8 +161,6 @@ def dengue_capitais() -> Build:
         pop = float(df["pop"].dropna().iloc[-1]) if df["pop"].notna().any() else np.nan
         if np.isfinite(pop) and pop > 0:
             incid.append(BarItem(label=city, value=round(last4 / pop * 1e5, 1)))
-        level = int(df["nivel"].dropna().iloc[-1]) if df["nivel"].notna().any() else 1
-        alerts.append((city, level))
 
         out = pd.DataFrame(
             {

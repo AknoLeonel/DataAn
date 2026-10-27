@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>DataAn — Início</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0A0D12}
+a{color:#8DBBF2}a:hover{color:#B9D5F8}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes ring{0%{r:5;opacity:.55}100%{r:16;opacity:0}}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(12,163,12,.55)}100%{box-shadow:0 0 0 9px rgba(12,163,12,0)}}
+@keyframes cycle{0%{opacity:0;transform:translateY(6px)}4%,30%{opacity:1;transform:none}34%,100%{opacity:0;transform:translateY(-6px)}}
+@keyframes flow{from{transform:translateX(0);opacity:0}15%{opacity:1}85%{opacity:1}to{transform:translateX(var(--dist,160px));opacity:0}}
+.rise{animation:rise .7s cubic-bezier(.22,1,.36,1) both}
+.draw{stroke-dasharray:1;animation:draw 1.3s cubic-bezier(.65,0,.35,1) both}
+.fadein{animation:fadein .9s ease-out both}
+.ring{animation:ring 1.8s ease-out infinite}
+.live{animation:livepulse 1.8s ease-out infinite}
+.cycle{animation:cycle 12s linear infinite both}
+.flow{animation:flow 2.4s cubic-bezier(.45,0,.55,1) infinite both}
+.dscard{transition:transform .25s cubic-bezier(.22,1,.36,1),border-color .25s}
+.dscard:hover{transform:translateY(-3px);border-color:rgba(141,187,242,.45)!important}
+.pill{transition:background .2s,color .2s,border-color .2s}
+.no-motion *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="{{ rootClass }}" style="min-height: 100%; background: #0A0D12; color: #EEF2F6; font-family: 'Geist', system-ui, sans-serif; font-size: 16px; line-height: 1.5">
+
+  <header style="position: sticky; top: 0; z-index: 10; background: #0A0D12; border-bottom: 1px solid rgba(255,255,255,0.08)">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 0 32px; min-height: 64px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px">
+      <a href="#" style="display: flex; align-items: center; gap: 10px; color: #EEF2F6; text-decoration: none; font-weight: 700; font-size: 19px; letter-spacing: -0.02em; margin-right: auto">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#18202A"></rect><rect x="6" y="16" width="5" height="10" rx="1.5" fill="#3987E5"></rect><rect x="13.5" y="11" width="5" height="15" rx="1.5" fill="#3987E5" opacity="0.8"></rect><rect x="21" y="6" width="5" height="20" rx="1.5" fill="#3987E5" opacity="0.6"></rect></svg>
+        DataAn
+      </a>
+      <nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 15px; font-weight: 500">
+        <a href="#explorar" style="color: #EEF2F6; text-decoration: none">Explorar</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">Categorias</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">API</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">Status</a>
+        <a href="#" style="color: #A9B4C0; text-decoration: none">Sobre</a>
+      </nav>
+      <button type="button" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #11161D; color: #A9B4C0; font: inherit; font-size: 14px; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        Buscar dados
+        <span style="font-family: 'Geist Mono', monospace; font-size: 12px; padding: 2px 6px; border-radius: 6px; background: #18202A; color: #8C97A5">/</span>
+      </button>
+      <button type="button" aria-label="Alternar tema claro ou escuro" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #11161D; color: #EEF2F6; display: grid; place-items: center; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section style="max-width: 1240px; margin: 0 auto; padding: 72px 32px 40px; display: flex; flex-wrap: wrap; gap: 48px; align-items: stretch">
+      <div class="rise" style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 22px">
+        <div style="display: inline-flex; align-self: flex-start; align-items: center; gap: 10px; padding: 6px 12px 6px 10px; border-radius: 999px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: #A9B4C0">
+          <span class="live" style="width: 8px; height: 8px; border-radius: 50%; background: #0CA30C"></span>
+          Pipeline rodou hoje às 02:39 · 7 de 8 conjuntos atualizados
+        </div>
+        <h1 style="margin: 0; font-size: 64px; line-height: 1.02; letter-spacing: -0.035em; font-weight: 700">O Brasil em dados,<br>explicado em movimento.</h1>
+        <p style="margin: 0; font-size: 20px; color: #A9B4C0; max-width: 34ch">Juros, inflação, saúde, ar e clima a partir de fontes oficiais. Cada número vem com contexto: de onde veio, até quando vale e o que mudou.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px">
+          <a href="#explorar" style="display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 22px; border-radius: 999px; background: #3987E5; color: #FFFFFF; text-decoration: none; font-weight: 600">Explorar os dados
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </a>
+          <a href="#" style="display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); color: #EEF2F6; text-decoration: none; font-weight: 600">API aberta</a>
+        </div>
+      </div>
+
+      <aside aria-label="Pulso de hoje" class="rise" style="flex: 1 1 460px; min-width: 0; background: #11161D; border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 6px; animation-delay: 120ms">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 10px">
+          <h2 style="margin: 0; font-size: 15px; font-weight: 600; color: #EEF2F6">Pulso de hoje</h2>
+          <span style="font-size: 13px; color: #8C97A5">variação no período indicado</span>
+        </div>
+        <sc-for list="{{ pulse }}" as="p" hint-placeholder-count="4">
+          <a href="#" class="rise" style="display: grid; grid-template-columns: minmax(0, 1fr) auto 112px; align-items: center; gap: 16px; padding: 14px 12px; border-radius: 14px; border-top: 1px solid rgba(255,255,255,0.06); color: inherit; text-decoration: none; animation-delay: {{ p.delay }}">
+            <div style="min-width: 0">
+              <div style="font-size: 14px; color: #A9B4C0">{{ p.label }}</div>
+              <div style="font-size: 12px; color: #8C97A5">dados até {{ p.until }}</div>
+            </div>
+            <div style="text-align: right">
+              <div style="font-size: 28px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1">{{ p.value }}<span style="font-size: 14px; font-weight: 500; color: #A9B4C0; margin-left: 3px">{{ p.unit }}</span></div>
+              <div style="font-size: 12px; font-weight: 600; color: {{ p.deltaColor }}">{{ p.delta }} <span style="font-weight: 400; color: #8C97A5">{{ p.period }}</span></div>
+            </div>
+            <svg width="112" height="40" viewBox="0 0 112 40" aria-hidden="true">
+              <path d="{{ p.area }}" fill="{{ p.color }}" opacity="0.12" class="fadein"></path>
+              <path d="{{ p.line }}" pathLength="1" class="draw" fill="none" stroke="{{ p.color }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation-delay: {{ p.delay }}"></path>
+              <circle cx="{{ p.endX }}" cy="{{ p.endY }}" r="5" fill="{{ p.color }}" class="ring"></circle>
+              <circle cx="{{ p.endX }}" cy="{{ p.endY }}" r="3.5" fill="{{ p.color }}" stroke="#11161D" stroke-width="2"></circle>
+            </svg>
+          </a>
+        </sc-for>
+        <div style="position: relative; height: 48px; margin-top: 8px; border-radius: 14px; background: #18202A; overflow: hidden" aria-live="off">
+          <sc-for list="{{ ticker }}" as="tk" hint-placeholder-count="3">
+            <p class="cycle" style="position: absolute; inset: 0; margin: 0; padding: 0 16px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #EEF2F6; animation-delay: {{ tk.delay }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8DBBF2" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>
+              {{ tk.text }}
+            </p>
+          </sc-for>
+        </div>
+      </aside>
+    </section>
+
+    <section aria-labelledby="destaque" style="max-width: 1240px; margin: 0 auto; padding: 32px 32px">
+      <div class="rise" style="background: #11161D; border: 1px solid rgba(255,255,255,0.08); border-radius: 28px; padding: 32px; animation-delay: 220ms">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 24px">
+          <div style="min-width: 0">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #A9B4C0"><span style="width: 8px; height: 8px; border-radius: 2px; background: #3987E5"></span>Em destaque · Economia</div>
+            <h2 id="destaque" style="margin: 8px 0 4px; font-size: 32px; letter-spacing: -0.025em; line-height: 1.15">Onde a inflação está em relação à meta</h2>
+            <p style="margin: 0; color: #A9B4C0; font-size: 15px">IPCA acumulado em 12 meses e o intervalo de tolerância definido pelo CMN para cada ano. Passe o cursor ou use as setas.</p>
+          </div>
+          <div role="group" aria-label="Período" style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #0A0D12; border: 1px solid rgba(255,255,255,0.08)">
+            <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="3">
+              <button type="button" class="pill" aria-pressed="{{ r.pressed }}" onClick="{{ r.pick }}" style="min-height: 40px; min-width: 56px; padding: 0 16px; border-radius: 999px; border: 0; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; background: {{ r.bg }}; color: {{ r.fg }}">{{ r.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 22px 0 6px; font-size: 13px; color: #A9B4C0">
+          <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 18px; height: 3px; border-radius: 2px; background: #3987E5"></span>IPCA 12 meses</span>
+          <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 14px; height: 12px; border-radius: 3px; background: rgba(25,158,112,0.28); border: 1px solid rgba(25,158,112,0.6)"></span>Intervalo da meta (piso a teto)</span>
+          <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 18px; height: 0; border-top: 2px dashed #199E70"></span>Centro da meta</span>
+        </div>
+
+        <div tabindex="0" aria-label="Gráfico do IPCA em 12 meses; use as setas para percorrer os meses" onKeyDown="{{ onKey }}" style="position: relative; border-radius: 16px; outline-offset: 4px">
+          <svg viewBox="0 0 1100 340" width="100%" role="img" aria-label="{{ chartAria }}" style="display: block; overflow: visible; font-family: 'Geist Mono', monospace">
+            <sc-for list="{{ yTicks }}" as="yt" hint-placeholder-count="5">
+              <line x1="52" x2="1080" y1="{{ yt.y }}" y2="{{ yt.y }}" stroke="rgba(255,255,255,0.07)"></line>
+              <text x="40" y="{{ yt.y }}" dy="4" text-anchor="end" font-size="12" fill="#8C97A5">{{ yt.label }}</text>
+            </sc-for>
+            <path d="{{ band }}" style="d: path('{{ band }}'); transition: d 700ms cubic-bezier(.22,1,.36,1)" fill="rgba(25,158,112,0.16)" class="fadein"></path>
+            <path d="{{ center }}" style="d: path('{{ center }}'); transition: d 700ms cubic-bezier(.22,1,.36,1)" fill="none" stroke="#199E70" stroke-width="1.5" stroke-dasharray="5 5"></path>
+            <path d="{{ line }}" pathLength="1" class="draw" style="d: path('{{ line }}'); transition: d 700ms cubic-bezier(.22,1,.36,1); animation-delay: 300ms" fill="none" stroke="#3987E5" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+            <sc-for list="{{ xTicks }}" as="xt" hint-placeholder-count="6">
+              <text x="{{ xt.x }}" y="330" text-anchor="middle" font-size="12" fill="#8C97A5">{{ xt.label }}</text>
+            </sc-for>
+            <sc-if value="{{ peak.show }}" hint-placeholder-val="{{ true }}">
+              <g class="fadein" style="animation-delay: 1.2s">
+                <line x1="{{ peak.x }}" x2="{{ peak.x }}" y1="{{ peak.y }}" y2="{{ peak.ly }}" stroke="#A9B4C0" stroke-width="1"></line>
+                <text x="{{ peak.tx }}" y="{{ peak.ty }}" font-size="13" fill="#EEF2F6" font-family="Geist, sans-serif" font-weight="600">{{ peak.label }}</text>
+              </g>
+            </sc-if>
+            <circle cx="{{ last.x }}" cy="{{ last.y }}" r="5" fill="#3987E5" class="ring"></circle>
+            <circle cx="{{ last.x }}" cy="{{ last.y }}" r="5" fill="#3987E5" stroke="#11161D" stroke-width="2.5"></circle>
+            <sc-if value="{{ hov.show }}" hint-placeholder-val="{{ false }}">
+              <line x1="{{ hov.x }}" x2="{{ hov.x }}" y1="16" y2="300" stroke="#EEF2F6" stroke-opacity="0.5" stroke-width="1"></line>
+              <circle cx="{{ hov.x }}" cy="{{ hov.y }}" r="6" fill="#3987E5" stroke="#11161D" stroke-width="2.5"></circle>
+            </sc-if>
+            <rect x="52" y="10" width="1028" height="296" fill="transparent" onMouseMove="{{ onMove }}" onMouseLeave="{{ onLeave }}" style="cursor: crosshair"></rect>
+          </svg>
+          <sc-if value="{{ hov.show }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; top: 8px; left: {{ hov.left }}%; transform: translateX({{ hov.shift }}); pointer-events: none; min-width: 190px; padding: 12px 14px; border-radius: 14px; background: #18202A; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 12px 32px rgba(0,0,0,0.45)">
+              <div style="font-size: 13px; color: #A9B4C0">{{ hov.date }}</div>
+              <div style="font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">{{ hov.value }}</div>
+              <div style="font-size: 13px; color: #A9B4C0">meta: {{ hov.band }}</div>
+              <div style="margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: {{ hov.statusColor }}">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ hov.statusColor }}"></span>{{ hov.status }}
+              </div>
+            </div>
+          </sc-if>
+        </div>
+        <p style="margin: 14px 0 0; font-size: 13px; color: #8C97A5">Fonte: Banco Central (SGS 13522) e metas do CMN · dados até setembro de 2026 · <a href="#">ver página completa</a></p>
+      </div>
+    </section>
+
+    <section id="explorar" aria-labelledby="explorar-t" style="max-width: 1240px; margin: 0 auto; padding: 56px 32px 24px">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 20px">
+        <div>
+          <h2 id="explorar-t" style="margin: 0; font-size: 32px; letter-spacing: -0.025em">Explorar</h2>
+          <p style="margin: 4px 0 0; color: #A9B4C0; font-size: 15px">{{ shownLabel }}</p>
+        </div>
+        <div role="group" aria-label="Filtrar por área" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{ cats }}" as="c" hint-placeholder-count="6">
+            <button type="button" class="pill" aria-pressed="{{ c.pressed }}" onClick="{{ c.pick }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 550; cursor: pointer; background: {{ c.bg }}; color: {{ c.fg }}; border: 1px solid {{ c.border }}">
+              <span style="width: 8px; height: 8px; border-radius: 2px; background: {{ c.color }}"></span>{{ c.label }}<span style="color: {{ c.countColor }}; font-variant-numeric: tabular-nums">{{ c.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px">
+        <sc-for list="{{ cards }}" as="d" hint-placeholder-count="6">
+          <a href="#" class="dscard rise" style="display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); color: inherit; text-decoration: none; animation-delay: {{ d.delay }}">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+              <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #A9B4C0"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{ d.color }}"></span>{{ d.cat }}</span>
+              <sc-if value="{{ d.stale }}" hint-placeholder-val="{{ false }}">
+                <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #FAB219">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3z"></path><path d="M12 10v4M12 17.5v.01"></path></svg>Fonte indisponível
+                </span>
+              </sc-if>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 19px; letter-spacing: -0.01em">{{ d.title }}</h3>
+              <p style="margin: 4px 0 0; font-size: 14px; color: #A9B4C0">{{ d.summary }}</p>
+            </div>
+            <svg viewBox="0 0 300 72" width="100%" aria-hidden="true" style="display: block">
+              <sc-if value="{{ d.isLine }}" hint-placeholder-val="{{ true }}">
+                <path d="{{ d.area }}" fill="{{ d.color }}" opacity="0.14"></path>
+                <path d="{{ d.line }}" pathLength="1" class="draw" fill="none" stroke="{{ d.color }}" stroke-width="2" stroke-linejoin="round" style="animation-delay: {{ d.delay }}"></path>
+              </sc-if>
+              <sc-if value="{{ d.isBars }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ d.bars }}" as="b" hint-placeholder-count="12">
+                  <rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="2" fill="{{ b.fill }}" class="rise" style="animation-delay: {{ b.delay }}"></rect>
+                </sc-for>
+              </sc-if>
+            </svg>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.07)">
+              <div>
+                <div style="font-size: 13px; color: #A9B4C0">{{ d.kpiLabel }}</div>
+                <div style="font-size: 26px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">{{ d.kpi }}</div>
+              </div>
+              <div style="text-align: right; font-size: 12px; color: #8C97A5">{{ d.freq }}<br>dados até {{ d.until }}</div>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-labelledby="como" style="max-width: 1240px; margin: 0 auto; padding: 64px 32px 32px">
+      <h2 id="como" style="margin: 0 0 6px; font-size: 32px; letter-spacing: -0.025em">Do dado oficial ao gráfico, todo dia</h2>
+      <p style="margin: 0 0 28px; color: #A9B4C0; font-size: 15px">Se uma fonte cai, a última versão válida continua no ar e a página avisa.</p>
+      <div style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 0">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+          <div style="flex: 1 1 260px; display: flex; align-items: center; min-width: 0">
+            <div class="rise" style="flex: 1 1 auto; padding: 22px; border-radius: 20px; background: #11161D; border: 1px solid rgba(255,255,255,0.08); animation-delay: {{ s.delay }}">
+              <div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #8DBBF2">{{ s.n }}</div>
+              <h3 style="margin: 6px 0 4px; font-size: 18px">{{ s.title }}</h3>
+              <p style="margin: 0; font-size: 14px; color: #A9B4C0">{{ s.text }}</p>
+              <div style="margin-top: 14px; font-size: 28px; font-weight: 650; letter-spacing: -0.02em">{{ s.stat }}<span style="font-size: 14px; font-weight: 500; color: #A9B4C0; margin-left: 6px">{{ s.statLabel }}</span></div>
+            </div>
+            <sc-if value="{{ s.connector }}" hint-placeholder-val="{{ true }}">
+              <div aria-hidden="true" style="position: relative; flex: 0 0 56px; height: 2px; background: rgba(255,255,255,0.1)">
+                <span class="flow" style="position: absolute; left: 0; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: #3987E5; --dist: 48px"></span>
+                <span class="flow" style="position: absolute; left: 0; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: #3987E5; --dist: 48px; animation-delay: 1.2s"></span>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+
+  <footer style="margin-top: 56px; border-top: 1px solid rgba(255,255,255,0.08)">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 32px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 14px; color: #8C97A5">
+      <span>DataAn · código aberto, sem cookies e sem rastreamento.</span>
+      <span>Dados: Banco Central, IBGE, InfoDengue (Fiocruz/FGV), Copernicus via Open-Meteo, NASA POWER.</span>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"animate":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":2480}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { t: 0, range: "10A", cat: "todas", hover: null };
+  }
+  componentDidMount() {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || this.props.animate === false) { this.setState({ t: 1 }); return; }
+    var self = this;
+    var start = performance.now();
+    var tick = function (now) {
+      var p = Math.min(1, (now - start) / 1200);
+      self.setState({ t: p });
+      if (p < 1) self.raf = requestAnimationFrame(tick);
+    };
+    this.raf = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); }
+
+  fmt(v, d) { return v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+  series(seed, n, base, amp, trend) {
+    var out = [];
+    var x = seed;
+    for (var i = 0; i < n; i++) {
+      x = (x * 9301 + 49297) % 233280;
+      var r = x / 233280 - 0.5;
+      out.push(base + trend * i + amp * Math.sin(i / 2.2 + seed) + amp * 0.6 * r);
+    }
+    return out;
+  }
+
+  spark(vals, w, h, pad) {
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    var sx = (w - 2 * pad) / (vals.length - 1);
+    var pts = vals.map(function (v, i) {
+      var y = max === min ? h / 2 : h - pad - (v - min) / (max - min) * (h - 2 * pad);
+      return [pad + i * sx, y];
+    });
+    var line = pts.map(function (p, i) { return (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1); }).join("");
+    var area = line + "L" + pts[pts.length - 1][0].toFixed(1) + "," + h + "L" + pts[0][0].toFixed(1) + "," + h + "Z";
+    var last = pts[pts.length - 1];
+    return { line: line, area: area, endX: last[0].toFixed(1), endY: last[1].toFixed(1) };
+  }
+
+  ipca() {
+    var anchors = [[2016.0,10.7],[2016.5,8.8],[2017.0,5.4],[2017.5,2.6],[2018.0,2.9],[2018.5,4.4],[2019.0,3.8],[2019.5,3.2],[2020.0,4.2],[2020.4,1.9],[2021.0,4.6],[2021.75,10.3],[2022.3,12.1],[2022.9,5.8],[2023.5,3.2],[2024.0,4.5],[2024.9,4.8],[2025.4,5.3],[2025.9,4.6],[2026.7,4.3]];
+    var targets = {2016:[4.5,2],2017:[4.5,1.5],2018:[4.5,1.5],2019:[4.25,1.5],2020:[4,1.5],2021:[3.75,1.5],2022:[3.5,1.5],2023:[3.25,1.5]};
+    var out = [];
+    for (var m = 0; m <= 128; m++) {
+      var t = 2016 + m / 12;
+      var j = 0;
+      while (j < anchors.length - 2 && anchors[j + 1][0] < t) j++;
+      var a = anchors[j], b = anchors[j + 1];
+      var f = Math.max(0, Math.min(1, (t - a[0]) / (b[0] - a[0])));
+      var v = a[1] + (b[1] - a[1]) * (0.5 - Math.cos(Math.PI * f) / 2) + 0.12 * Math.sin(m * 1.7);
+      var year = 2016 + Math.floor(m / 12);
+      var tg = targets[year] || [3, 1.5];
+      out.push({ year: year, month: m % 12, v: v, c: tg[0], lo: tg[0] - tg[1], hi: tg[0] + tg[1] });
+    }
+    return out;
+  }
+
+  renderVals() {
+    var self = this;
+    var t = this.state.t;
+    var ease = 1 - Math.pow(1 - t, 3);
+    var MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    var good = "#4CC24C", bad = "#F07B7B", neutral = "#A9B4C0";
+
+    var pulseDefs = [
+      { label: "Meta Selic", until: "27/10/2026", target: 15.0, d: 2, unit: "% a.a.", delta: "0,00 p.p.", period: "em 3 meses", deltaColor: neutral, color: "#3987E5", seed: 3, trend: 0.02 },
+      { label: "IPCA em 12 meses", until: "set/2026", target: 4.3, d: 2, unit: "%", delta: "↓ 0,18 p.p.", period: "vs. agosto", deltaColor: good, color: "#3987E5", seed: 7, trend: -0.04 },
+      { label: "Dólar (venda)", until: "26/10/2026", target: 5.38, d: 2, unit: "R$", delta: "↑ 1,2%", period: "em 30 dias", deltaColor: neutral, color: "#3987E5", seed: 11, trend: 0.01 },
+      { label: "Desocupação", until: "ago/2026", target: 5.6, d: 1, unit: "%", delta: "↓ 0,8 p.p.", period: "em 12 meses", deltaColor: good, color: "#3987E5", seed: 13, trend: -0.05 }
+    ];
+    var pulse = pulseDefs.map(function (p, i) {
+      var s = self.spark(self.series(p.seed, 18, 10, 1.2, p.trend * 10), 112, 40, 4);
+      var val = p.unit === "R$" ? "R$ " + self.fmt(p.target * ease, p.d) : self.fmt(p.target * ease, p.d);
+      return { label: p.label, until: p.until, value: val, unit: p.unit === "R$" ? "" : p.unit, delta: p.delta, period: p.period, deltaColor: p.deltaColor, color: p.color, line: s.line, area: s.area, endX: s.endX, endY: s.endY, delay: (150 + i * 80) + "ms" };
+    });
+
+    var ticker = [
+      { text: "Qualidade do ar: 3 capitais acima da diretriz da OMS nos últimos 30 dias.", delay: "0s" },
+      { text: "Dengue: casos estimados caindo nas 6 capitais acompanhadas.", delay: "4s" },
+      { text: "População dos estados: IBGE fora do ar, exibindo a última versão válida.", delay: "8s" }
+    ];
+
+    var all = this.ipca();
+    var take = this.state.range === "1A" ? 13 : this.state.range === "5A" ? 61 : all.length;
+    var seg = all.slice(all.length - take);
+    var N = 64;
+    var sample = [];
+    for (var k = 0; k < N; k++) {
+      var pos = k * (seg.length - 1) / (N - 1);
+      var i0 = Math.floor(pos), i1 = Math.min(seg.length - 1, i0 + 1), fr = pos - i0;
+      var A = seg[i0], B = seg[i1];
+      sample.push({ v: A.v + (B.v - A.v) * fr, lo: A.lo + (B.lo - A.lo) * fr, hi: A.hi + (B.hi - A.hi) * fr, c: A.c + (B.c - A.c) * fr, src: fr < 0.5 ? A : B });
+    }
+    var L = 52, R = 1080, T = 16, Bt = 300, ymax = 13;
+    var X = function (k) { return L + k * (R - L) / (N - 1); };
+    var Y = function (v) { return Bt - v / ymax * (Bt - T); };
+    var line = sample.map(function (s, k) { return (k ? "L" : "M") + X(k).toFixed(1) + "," + Y(s.v).toFixed(1); }).join("");
+    var center = sample.map(function (s, k) { return (k ? "L" : "M") + X(k).toFixed(1) + "," + Y(s.c).toFixed(1); }).join("");
+    var top = sample.map(function (s, k) { return (k ? "L" : "M") + X(k).toFixed(1) + "," + Y(s.hi).toFixed(1); }).join("");
+    var bottom = sample.slice().reverse().map(function (s, k) { return "L" + X(N - 1 - k).toFixed(1) + "," + Y(s.lo).toFixed(1); }).join("");
+    var band = top + bottom + "Z";
+
+    var yTicks = [0, 3, 6, 9, 12].map(function (v) { return { y: Y(v).toFixed(1), label: v + "%" }; });
+    var xTicks = [];
+    if (this.state.range === "1A") {
+      seg.forEach(function (s, i) { if (i % 3 === 0) xTicks.push({ x: (L + i * (R - L) / (seg.length - 1)).toFixed(1), label: MESES[s.month] + "/" + String(s.year).slice(2) }); });
+    } else {
+      seg.forEach(function (s, i) { if (s.month === 0) xTicks.push({ x: (L + i * (R - L) / (seg.length - 1)).toFixed(1), label: String(s.year) }); });
+    }
+    var pk = 0;
+    sample.forEach(function (s, k) { if (s.v > sample[pk].v) pk = k; });
+    var peakSrc = sample[pk].src;
+    var peak = { show: pk > 4 && pk < N - 6, x: X(pk).toFixed(1), y: (Y(sample[pk].v) - 8).toFixed(1), ly: (Y(sample[pk].v) - 34).toFixed(1), tx: (X(pk) + 8).toFixed(1), ty: (Y(sample[pk].v) - 38).toFixed(1), label: "pico: " + this.fmt(sample[pk].v, 1) + "% em " + MESES[peakSrc.month] + "/" + peakSrc.year };
+    var lastS = sample[N - 1];
+    var last = { x: X(N - 1).toFixed(1), y: Y(lastS.v).toFixed(1) };
+
+    var hv = this.state.hover;
+    var hov = { show: false, x: 0, y: 0, left: 0, shift: "0", date: "", value: "", band: "", status: "", statusColor: neutral };
+    if (hv !== null && hv >= 0 && hv < N) {
+      var hs = sample[hv];
+      var st = hs.v > hs.hi ? ["Acima do teto", "#F07B7B"] : hs.v < hs.lo ? ["Abaixo do piso", "#FAB219"] : ["Dentro do intervalo", "#4CC24C"];
+      var leftPct = X(hv) / 1100 * 100;
+      hov = { show: true, x: X(hv).toFixed(1), y: Y(hs.v).toFixed(1), left: leftPct.toFixed(2), shift: leftPct > 70 ? "calc(-100% - 16px)" : "16px", date: MESES[hs.src.month] + " de " + hs.src.year, value: this.fmt(hs.v, 2) + "%", band: this.fmt(hs.lo, 2) + "% a " + this.fmt(hs.hi, 2) + "%", status: st[0], statusColor: st[1] };
+    }
+
+    var ranges = ["1A", "5A", "10A"].map(function (r) {
+      var on = self.state.range === r;
+      return { label: r, pressed: on ? "true" : "false", bg: on ? "#EEF2F6" : "transparent", fg: on ? "#0A0D12" : "#A9B4C0", pick: function () { self.setState({ range: r, hover: null }); } };
+    });
+
+    var catDefs = [["todas","Todas","#A9B4C0"],["economia","Economia","#3987E5"],["saude","Saúde","#E66767"],["meio-ambiente","Meio ambiente","#199E70"],["clima","Clima","#D95926"],["demografia","Demografia","#9085E9"]];
+    var dsDefs = [
+      { cat: "economia", title: "Taxa Selic e juro real", summary: "Juro básico definido pelo Copom e quanto ele rende acima da inflação.", kpiLabel: "Meta Selic", kpi: "15,00% a.a.", freq: "Diária", until: "27/10/2026", kind: "line", seed: 3 },
+      { cat: "economia", title: "Inflação (IPCA)", summary: "Inflação oficial mês a mês e em 12 meses, comparada à meta.", kpiLabel: "IPCA 12 meses", kpi: "4,30%", freq: "Mensal", until: "set/2026", kind: "bars", seed: 5 },
+      { cat: "economia", title: "Dólar comercial", summary: "Cotação diária em reais e sua variação recente.", kpiLabel: "Venda", kpi: "R$ 5,38", freq: "Dias úteis", until: "26/10/2026", kind: "line", seed: 11 },
+      { cat: "economia", title: "Taxa de desemprego", summary: "Desocupação pela PNAD Contínua, em trimestres móveis.", kpiLabel: "Desocupação", kpi: "5,6%", freq: "Mensal", until: "ago/2026", kind: "line", seed: 13 },
+      { cat: "saude", title: "Dengue nas capitais", summary: "Casos semanais estimados, alerta e previsão de 4 semanas.", kpiLabel: "Casos (4 semanas)", kpi: "1,2 mil", freq: "Semanal", until: "sem. 11/10/2026", kind: "bars", seed: 17 },
+      { cat: "meio-ambiente", title: "Qualidade do ar nas capitais", summary: "PM2.5 nos últimos 90 dias frente à diretriz da OMS.", kpiLabel: "Pior média (30 dias)", kpi: "21,1 µg/m³", freq: "Diária", until: "26/10/2026", kind: "bars", seed: 19 },
+      { cat: "clima", title: "Aquecimento nas capitais", summary: "Anomalia de temperatura anual desde 1981 em oito capitais.", kpiLabel: "Aquecimento médio", kpi: "+1,04 °C", freq: "Anual", until: "2025", kind: "bars", seed: 23 },
+      { cat: "demografia", title: "População dos estados", summary: "População estimada por UF e crescimento recente.", kpiLabel: "Brasil", kpi: "213,4 mi", freq: "Anual", until: "2025", kind: "line", seed: 29, stale: true }
+    ];
+    var colorOf = {}; catDefs.forEach(function (c) { colorOf[c[0]] = c[2]; });
+    var nameOf = {}; catDefs.forEach(function (c) { nameOf[c[0]] = c[1]; });
+    var cats = catDefs.map(function (c) {
+      var on = self.state.cat === c[0];
+      var count = c[0] === "todas" ? dsDefs.length : dsDefs.filter(function (d) { return d.cat === c[0]; }).length;
+      return { label: c[1], color: c[2], count: count, pressed: on ? "true" : "false", bg: on ? "#EEF2F6" : "#11161D", fg: on ? "#0A0D12" : "#EEF2F6", border: on ? "#EEF2F6" : "rgba(255,255,255,0.1)", countColor: on ? "#4A5562" : "#8C97A5", pick: function () { self.setState({ cat: c[0] }); } };
+    });
+    var visible = dsDefs.filter(function (d) { return self.state.cat === "todas" || d.cat === self.state.cat; });
+    var cards = visible.map(function (d, i) {
+      var vals = self.series(d.seed, 24, 10, 1.5, d.kind === "line" ? 0.08 : 0);
+      var s = self.spark(vals, 300, 72, 4);
+      var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+      var diverging = d.cat === "clima";
+      var bars = vals.map(function (v, j) {
+        var n = (v - min) / (max - min);
+        var hval = diverging ? Math.abs(n - 0.45) * 60 + 3 : 8 + n * 60;
+        var up = !diverging || n >= 0.45;
+        var y = diverging ? (up ? 36 - hval / 2 : 36) : 72 - hval;
+        return { x: (j * 12.5 + 1).toFixed(1), w: "9.5", y: y.toFixed(1), h: (diverging ? hval / 2 : hval).toFixed(1), fill: diverging ? (up ? "#E66767" : "#3987E5") : (j === vals.length - 1 ? colorOf[d.cat] : "rgba(169,180,192,0.35)"), delay: (j * 25) + "ms" };
+      });
+      return { title: d.title, summary: d.summary, kpiLabel: d.kpiLabel, kpi: d.kpi, freq: d.freq, until: d.until, cat: nameOf[d.cat], color: colorOf[d.cat], isLine: d.kind === "line", isBars: d.kind === "bars", line: s.line, area: s.area, bars: bars, stale: !!d.stale, delay: (i * 60) + "ms" };
+    });
+
+    var steps = [
+      { n: "01", title: "Coleta", text: "APIs oficiais consultadas com retentativa, limite de tempo e fallback.", stat: "5", statLabel: "fontes oficiais", connector: true, delay: "0ms" },
+      { n: "02", title: "Validação", text: "Contrato de dados e checagens de qualidade antes de publicar qualquer número.", stat: "8", statLabel: "conjuntos de dados", connector: true, delay: "120ms" },
+      { n: "03", title: "Publicação", text: "Site estático, JSON e CSV abertos, e um status público de cada execução.", stat: "06:17", statLabel: "todo dia", connector: false, delay: "240ms" }
+    ];
+
+    return {
+      rootClass: this.props.animate === false ? "no-motion" : "",
+      pulse: pulse,
+      ticker: ticker,
+      ranges: ranges,
+      band: band,
+      center: center,
+      line: line,
+      yTicks: yTicks,
+      xTicks: xTicks,
+      peak: peak,
+      last: last,
+      hov: hov,
+      chartAria: "IPCA em 12 meses (" + this.state.range + "): último valor " + this.fmt(lastS.v, 2) + "%, intervalo da meta de " + this.fmt(lastS.lo, 1) + "% a " + this.fmt(lastS.hi, 1) + "%.",
+      onMove: function (e) {
+        var r = e.currentTarget.getBoundingClientRect();
+        var f = (e.clientX - r.left) / r.width;
+        self.setState({ hover: Math.max(0, Math.min(N - 1, Math.round(f * (N - 1)))) });
+      },
+      onLeave: function () { self.setState({ hover: null }); },
+      onKey: function (e) {
+        var h = self.state.hover === null ? N - 1 : self.state.hover;
+        if (e.key === "ArrowLeft") { e.preventDefault(); self.setState({ hover: Math.max(0, h - 1) }); }
+        else if (e.key === "ArrowRight") { e.preventDefault(); self.setState({ hover: Math.min(N - 1, h + 1) }); }
+        else if (e.key === "Escape") { self.setState({ hover: null }); }
+      },
+      cats: cats,
+      cards: cards,
+      shownLabel: cards.length + (cards.length === 1 ? " conjunto de dados" : " conjuntos de dados") + (this.state.cat === "todas" ? " em 5 áreas" : " em " + nameOf[this.state.cat]),
+      steps: steps
+    };
+  }
+}
+</script>
+</body>
+</html>

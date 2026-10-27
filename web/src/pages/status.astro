@@ -5,62 +5,135 @@ import StatusPill from '../components/StatusPill.astro';
 import { getStatus } from '../lib/data';
 import { formatDateTime, formatInt } from '../lib/format';
 import { url } from '../lib/site';
-import type { StatusLevel } from '../lib/types';
+import { explainError, health, nextRun } from '../lib/status';
+import { nice } from '../lib/charts/common';
 
 const status = getStatus();
+const h = health(status);
 const datasets = status?.datasets ?? [];
-const failing = datasets.filter((d) => !d.ok);
-const missing = failing.filter((d) => !d.stale);
-const level: StatusLevel = !status ? 'warning' : missing.length ? 'critical' : failing.length ? 'warning' : 'good';
-const headline = !status
-  ? 'Aguardando a primeira execução do pipeline'
-  : level === 'good'
-    ? 'Todos os conjuntos de dados estão atualizados'
-    : level === 'warning'
-      ? `${failing.length} ${failing.length === 1 ? 'conjunto está desatualizado' : 'conjuntos estão desatualizados'}`
-      : `${missing.length} ${missing.length === 1 ? 'conjunto indisponível' : 'conjuntos indisponíveis'}`;
-const icon = level === 'good' ? 'check' : level === 'critical' ? 'x' : 'alert';
 const history = status?.history.slice(-30) ?? [];
-const totalRuns = history.length;
-const okRuns = history.filter((h) => h.failed === 0).length;
+const fmt1 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+let headline = 'Aguardando a primeira execução do pipeline';
+let explanation = 'Assim que o pipeline rodar, esta página mostra o resultado de cada conjunto de dados.';
+if (h) {
+  const failing = [...h.missing, ...h.stale];
+  if (!failing.length) {
+    headline = `Todos os ${h.total} conjuntos de dados estão atualizados.`;
+    explanation = 'A última execução coletou, validou e publicou todos os conjuntos sem falhas.';
+  } else {
+    const names = failing.map((d) => d.title).join(', ');
+    headline = `${h.ok} de ${h.total} conjuntos atualizados. ${failing.length === 1 ? `${names} está` : `${names} estão`} com problema.`;
+    explanation = failing
+      .map((d) => `${d.title}: ${explainError(d.error)} ${d.stale ? 'A versão anterior continua no ar, marcada como desatualizada.' : 'Ainda não há versão anterior para exibir.'}`)
+      .join(' ');
+  }
+}
+const levelLabel = !h ? 'Sem dados' : h.level === 'good' ? 'Operação normal' : h.level === 'warning' ? 'Operação parcial' : 'Operação parcial';
+const levelIcon = !h || h.level === 'good' ? 'check' : 'alert';
+
+// Anel: fração atualizada (pathLength=1 permite animar sem estilo inline).
+const okFrac = h && h.total ? h.ok / h.total : 0;
+
+// Linha do tempo da execução: os conjuntos rodam em sequência.
+const total = datasets.reduce((a, d) => a + d.duration_s, 0) || 1;
+const scale = nice(0, total, 4);
+const scaleMax = scale.max;
+const play = 3200;
+let acc = 0;
+const bars = datasets.map((d) => {
+  const start = acc;
+  acc += d.duration_s;
+  const delay = 300 + (start / total) * play;
+  const dur = Math.max(120, (d.duration_s / total) * play);
+  return {
+    d,
+    x0: start / scaleMax,
+    w0: d.duration_s / scaleMax,
+    label: `${fmt1(d.duration_s)} s`,
+    delay: `${Math.round(delay)}ms`,
+    dur: `${Math.round(dur)}ms`,
+    labelDelay: `${Math.round(delay + dur)}ms`,
+  };
+});
+const ticks = scale.ticks;
+const slowest = [...datasets].sort((a, b) => b.duration_s - a.duration_s)[0];
+const CHECK = 'M5 12.5 10 17 19 7';
+const CROSS = 'M7 7l10 10M17 7 7 17';
 ---
-<Base title="Status do pipeline" description="Saúde operacional do pipeline de dados do DataAn: última execução, falhas e histórico por conjunto de dados.">
+<Base title="Status do pipeline" description="Saúde operacional do pipeline de dados do DataAn: última execução, falhas explicadas, tempo gasto por conjunto e histórico.">
   <div class="container page-flow">
     <nav class="crumbs" aria-label="Trilha de navegação">
       <ol><li><a href={url('/')}>Início</a></li><li aria-current="page">Status</li></ol>
     </nav>
-    <header>
+    <header class="reveal">
       <h1>Status do pipeline</h1>
       <p class="lead muted">
-        O pipeline roda uma vez por dia e a cada publicação. Cada conjunto é coletado de forma isolada: se uma fonte
-        falha, a última versão válida continua no ar e é marcada como desatualizada.
+        Cada conjunto é coletado separadamente. Se uma fonte falha, a última versão válida continua no ar com um aviso, e os
+        outros seguem normalmente.
       </p>
     </header>
 
-    <section class="card" aria-labelledby="saude">
-      <div class:list={['health', `st-${level}`]}>
-        <Icon name={icon} />
-        <div>
+    <section class="card reveal" aria-labelledby="saude">
+      <div class="status-hero">
+        <svg class="status-ring" viewBox="0 0 148 148" role="img" aria-label={h ? `${h.ok} de ${h.total} conjuntos atualizados` : 'Sem execuções'}>
+          <circle class="track" cx="74" cy="74" r="62" fill="none" stroke-width="14"></circle>
+          {h && h.ok < h.total && <circle class="fail" cx="74" cy="74" r="62" fill="none" stroke-width="14" pathLength="1" stroke-dasharray={`${(1 - okFrac).toFixed(4)} 1`} stroke-dashoffset={`${(-okFrac).toFixed(4)}`} transform="rotate(-90 74 74)"></circle>}
+          {h && h.ok > 0 && <circle class="ok" cx="74" cy="74" r="62" fill="none" stroke-width="14" pathLength="1" stroke-dasharray={`${okFrac.toFixed(4)} 1`} transform="rotate(-90 74 74)"></circle>}
+          <text class="big" x="74" y="74" text-anchor="middle">{h ? `${h.ok}/${h.total}` : '—'}</text>
+          <text class="small" x="74" y="96" text-anchor="middle">atualizados</text>
+        </svg>
+        <div class="status-copy">
+          <span class:list={['status-badge', `st-${h?.level ?? 'warning'}`]}><Icon name={levelIcon} />{levelLabel}</span>
           <h2 id="saude">{headline}</h2>
-          {status && (
-            <p class="muted small health-meta">
-              Última execução em {formatDateTime(status.generated_at)}, em {status.duration_s.toFixed(1)} s.
-              {status.run_url && <> <a href={status.run_url} rel="noopener">Ver log da execução</a>.</>}
-            </p>
-          )}
+          <p>{explanation}</p>
         </div>
+        {status && (
+          <dl class="status-facts">
+            <div><dt>Última execução</dt><dd><time datetime={status.generated_at}>{formatDateTime(status.generated_at)}</time></dd></div>
+            <div><dt>Duração</dt><dd>{fmt1(status.duration_s)} s</dd></div>
+            <div><dt>Próxima execução</dt><dd>{formatDateTime(nextRun(status.generated_at).toISOString())}</dd></div>
+            <div><dt>Execuções registradas</dt><dd>{formatInt(status.history.length)}</dd></div>
+          </dl>
+        )}
       </div>
-      {totalRuns > 0 && (
-        <p class="small muted">{okRuns} de {totalRuns} execuções recentes sem nenhuma falha.</p>
-      )}
+      {status?.run_url && <p class="small muted"><a href={status.run_url} rel="noopener">Ver o log da execução</a></p>}
     </section>
 
     {datasets.length > 0 && (
-      <section class="card" aria-labelledby="por-conjunto">
+      <section class="card reveal" aria-labelledby="tempo">
+        <div class="section-head">
+          <div>
+            <h2 id="tempo">Onde a execução gastou tempo</h2>
+            <p class="muted small">Os conjuntos rodam em sequência; cada barra começa quando a anterior termina.{slowest && ` O mais lento foi ${slowest.title} (${fmt1(slowest.duration_s)} s).`}</p>
+          </div>
+          <button type="button" class="btn btn-ghost js-only" data-replay="linha-do-tempo">
+            <Icon name="replay" /> Reproduzir execução
+          </button>
+        </div>
+        <div id="linha-do-tempo" class="timeline play" role="img" aria-label={`Linha do tempo da execução: ${fmt1(total)} segundos no total`}>
+          {bars.map((b) => (
+            <div class="tl-row">
+              <span class="tl-name">{b.d.title}</span>
+              <svg class="tl-track" viewBox="0 0 1000 20" preserveAspectRatio="none" aria-hidden="true">
+                <rect class:list={['tl-bar', b.d.ok ? 'ok' : 'fail']} x={(b.x0 * 1000).toFixed(1)} y="2" width={Math.max(3, b.w0 * 1000).toFixed(1)} height="16" rx="4" data-anim-delay={b.delay} data-anim-dur={b.dur}></rect>
+              </svg>
+              <span class:list={['tl-val', { 'is-fail': !b.d.ok }]} data-anim-delay={b.labelDelay}>{b.label}</span>
+            </div>
+          ))}
+          <div class="tl-axis" aria-hidden="true">
+            {ticks.map((s) => <span>{s.toLocaleString('pt-BR')} s</span>)}
+          </div>
+        </div>
+      </section>
+    )}
+
+    {datasets.length > 0 && (
+      <section class="card reveal" aria-labelledby="por-conjunto">
         <h2 id="por-conjunto">Por conjunto de dados</h2>
-        <div class="table-wrap">
+        <p class="muted small">Histórico: uma marca por execução, a mais recente à direita.</p>
+        <div class="table-wrap full">
           <table>
-            <caption>Resultado da última execução. Histórico: cada barra é uma execução (mais recente à direita).</caption>
             <thead>
               <tr>
                 <th scope="col">Conjunto</th>
@@ -73,23 +146,27 @@ const okRuns = history.filter((h) => h.failed === 0).length;
             </thead>
             <tbody>
               {datasets.map((d) => {
-                const runs = history.map((h) => h.results[d.slug]);
-                const okCount = runs.filter((r) => r === true).length;
-                const ran = runs.filter((r) => r !== undefined).length;
+                const runs = history.map((r) => r.results[d.slug]).filter((r) => r !== undefined);
+                const okCount = runs.filter(Boolean).length;
                 return (
                   <tr>
                     <th scope="row"><a href={url(`/dados/${d.slug}/`)}>{d.title}</a></th>
                     <td>
                       {d.ok ? <StatusPill level="good" label="Atualizado" /> : d.stale ? <StatusPill level="warning" label="Desatualizado" /> : <StatusPill level="critical" label="Indisponível" />}
-                      {d.error && <div class="small muted wrap-anywhere">{d.error}</div>}
+                      {!d.ok && <span class="status-note">{explainError(d.error)}</span>}
+                      {!d.ok && d.error && <span class="status-note muted">Detalhe técnico: {d.error}</span>}
                     </td>
                     <td>{d.data_until ?? '—'}</td>
                     <td class="num">{formatInt(d.rows)}</td>
-                    <td class="num">{d.duration_s.toFixed(1)} s</td>
+                    <td class="num">{fmt1(d.duration_s)} s</td>
                     <td>
-                      <div class="history" role="img" aria-label={`${okCount} de ${ran} execuções com sucesso`}>
-                        {runs.map((r) => <span class:list={{ fail: r === false, none: r === undefined }} />)}
-                      </div>
+                      <span class="hist" role="img" aria-label={`${okCount} de ${runs.length} execuções com sucesso`}>
+                        {runs.map((r) => (
+                          <span class:list={['hist-sq', { fail: !r }]}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r ? CHECK : CROSS}></path></svg>
+                          </span>
+                        ))}
+                      </span>
                     </td>
                   </tr>
                 );
@@ -100,11 +177,11 @@ const okRuns = history.filter((h) => h.failed === 0).length;
       </section>
     )}
 
-    <section class="card prose" aria-labelledby="garantias">
+    <section class="card prose reveal" aria-labelledby="garantias">
       <h2 id="garantias">Garantias operacionais</h2>
       <ul>
-        <li>Retentativas com espera exponencial e limite de tempo em todas as chamadas às fontes.</li>
-        <li>Contrato de dados validado (Pydantic) e checagens de qualidade antes de publicar: volume mínimo, faixas plausíveis, ordem temporal e atraso máximo.</li>
+        <li>Retentativas com espera exponencial e limite de tempo; servidor alternativo quando a fonte oferece (IBGE).</li>
+        <li>Contrato de dados validado e checagens de qualidade antes de publicar: volume mínimo, faixas plausíveis, ordem temporal e atraso máximo.</li>
         <li>Escritas atômicas: um arquivo nunca é publicado pela metade.</li>
         <li>Falha isolada: um conjunto com problema não interrompe os demais.</li>
         <li>Fallback: a versão publicada anteriormente é reaproveitada quando a fonte está fora do ar.</li>

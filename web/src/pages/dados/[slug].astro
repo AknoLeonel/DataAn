@@ -60,6 +60,10 @@ const jsonld = [
   },
 ];
 const skillPct = ds.model ? Math.round(ds.model.skill * 100) : 0;
+const highlights = ds.highlights ?? [];
+// Destaques já aparecem ao lado do gráfico; aqui ficam só as leituras que não viraram destaque.
+const extraInsights = ds.insights.filter((i) => !highlights.some((h) => h.text === i));
+const maeMax = ds.model ? Math.max(ds.model.mae, ds.model.mae_baseline) || 1 : 1;
 ---
 <Base title={ds.title} description={description} jsonld={jsonld} ogType="article">
   <div class="container page-flow">
@@ -100,37 +104,42 @@ const skillPct = ds.model ? Math.round(ds.model.skill * 100) : 0;
     {ds.kpis.length > 0 && (
       <section aria-labelledby="kpis-titulo">
         <h2 id="kpis-titulo" class="sr-only">Indicadores principais</h2>
-        <ul class="grid grid-4" role="list">
-          {ds.kpis.map((k) => <KpiTile kpi={k} tag="li" />)}
+        <ul class="grid grid-4 stagger kpi-grid" role="list">
+          {ds.kpis.map((k) => <li class="reveal"><KpiTile kpi={k} /></li>)}
         </ul>
       </section>
     )}
 
-    {ds.insights.length > 0 && (
-      <section class="card insights" aria-labelledby="insights-titulo">
-        <h2 id="insights-titulo">O que os dados mostram</h2>
-        <ul>{ds.insights.map((i) => <li>{i}</li>)}</ul>
+    {extraInsights.length > 0 && (
+      <section class="card insights reveal" aria-labelledby="insights-titulo">
+        <h2 id="insights-titulo">{highlights.length ? 'Mais leituras' : 'O que os dados mostram'}</h2>
+        <ul>{extraInsights.map((i) => <li>{i}</li>)}</ul>
       </section>
     )}
 
-    {ds.charts.map((c) => <ChartBlock chart={c} csvHref={csv} />)}
+    {ds.charts.map((c) => <ChartBlock chart={c} csvHref={csv} highlights={highlights} />)}
 
     {ds.model && (
-      <section class="card" aria-labelledby="modelo-titulo">
-        <h2 id="modelo-titulo">Como avaliamos a previsão</h2>
+      <section class="card reveal" aria-labelledby="modelo-titulo">
+        <h2 id="modelo-titulo">A previsão é confiável?</h2>
         <p class="muted">
           {ds.model.name}, prevendo {ds.model.target.toLowerCase()} em um horizonte de {ds.model.horizon}. Comparamos
           com uma referência simples ({ds.model.baseline.toLowerCase()}) usando apenas dados do passado em cada ponto
           do teste.
         </p>
-        <div class="model-grid">
-          <div class="kpi"><span class="kpi-label">Erro médio do modelo</span><span class="kpi-value">{formatInt(ds.model.mae)}</span></div>
-          <div class="kpi"><span class="kpi-label">Erro médio da referência</span><span class="kpi-value">{formatInt(ds.model.mae_baseline)}</span></div>
-          <div class="kpi">
-            <span class="kpi-label">Ganho sobre a referência</span>
-            <span class="kpi-value">{skillPct > 0 ? '+' : ''}{skillPct}%</span>
+        <div class="model-bars" role="img" aria-label={`Erro médio: modelo ${formatInt(ds.model.mae)}, referência ${formatInt(ds.model.mae_baseline)}`}>
+          <div>
+            <div class="model-bar-head"><span>Modelo</span><strong>{formatInt(ds.model.mae)}</strong></div>
+            <div class="model-track"><span class:list={['model-fill', `w-${Math.round((ds.model.mae / maeMax) * 20) * 5}`]}></span></div>
+          </div>
+          <div>
+            <div class="model-bar-head"><span>{ds.model.baseline}</span><strong>{formatInt(ds.model.mae_baseline)}</strong></div>
+            <div class="model-track"><span class:list={['model-fill', 'base', `w-${Math.round((ds.model.mae_baseline / maeMax) * 20) * 5}`]}></span></div>
           </div>
         </div>
+        <p class="model-verdict">
+          {skillPct > 0 ? `O modelo erra ${skillPct}% menos que a referência.` : 'O modelo não superou a referência no teste recente.'}
+        </p>
         {ds.model.notes && <p class="small muted">{ds.model.notes}</p>}
         {skillPct <= 0 && (
           <p class="notice"><Icon name="info" /><span>O modelo não superou a referência no teste recente: use a projeção com cautela.</span></p>

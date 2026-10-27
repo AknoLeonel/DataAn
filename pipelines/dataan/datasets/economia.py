@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from datetime import date
 
 import pandas as pd
@@ -21,7 +22,9 @@ from dataan.models import (
     Column,
     ColumnChart,
     Delta,
+    Highlight,
     Kpi,
+    KpiRange,
     LineChart,
     RefLine,
     Series,
@@ -38,6 +41,22 @@ def _src(code: int, name: str) -> Source:
         name=f"Banco Central do Brasil — SGS {code} ({name})",
         url=bcb.source_url(code),
         license=LICENSE,
+    )
+
+
+def _d(ts: pd.Timestamp) -> str:
+    return ts.strftime("%Y-%m-%d")
+
+
+def _hl(chart: str, text: str, label: str, at: pd.Timestamp, start=None, end=None) -> Highlight:
+    """Destaque apontando para um ponto (e opcionalmente um trecho) de um gráfico de linha."""
+    return Highlight(
+        text=text,
+        chart=chart,
+        at=_d(at),
+        start=_d(start if start is not None else at),
+        end=_d(end if end is not None else at),
+        label=label,
     )
 
 
@@ -141,6 +160,22 @@ def selic() -> Build:
         tail = f" {fmt_num(abs(diff), 2)} p.p." if diff else ""
         insights.append(f"Em 12 meses, a taxa {verb}{tail}.")
 
+    peak_ts, peak = s.idxmax(), float(s.max())
+    highlights = [
+        _hl(
+            "historico",
+            insights[0],
+            f"{fmt_num(current, 2)}% desde {br_date(move_date)}",
+            move_date,
+        ),
+        _hl(
+            "historico",
+            f"O maior nível do período foi {fmt_num(peak, 2)}% ao ano, a partir de {br_date(peak_ts)}.",
+            f"máxima: {fmt_num(peak, 2)}%",
+            peak_ts,
+        ),
+    ]
+
     charts = [
         LineChart(
             id="historico",
@@ -171,6 +206,7 @@ def selic() -> Build:
         table=table,
         kpis=kpis,
         insights=insights,
+        highlights=highlights,
         coverage=f"{s.index[0].year}–{last_date.year}",
         data_until=br_date(last_date),
     )
@@ -240,7 +276,8 @@ def ipca() -> Build:
     else:
         status, status_label, rel = "good", "Dentro do intervalo da meta", "dentro do intervalo"
     last12 = df.iloc[-12:]
-    above = int((last12["ipca_12m"] > last12["meta_teto"]).sum())
+    above_12 = (last12["ipca_12m"] > last12["meta_teto"]).tolist()
+    above = int(sum(above_12))
 
     kpis = [
         Kpi(
@@ -252,15 +289,31 @@ def ipca() -> Build:
             as_of=month_label(last),
             status=status,
             status_label=status_label,
+            range=KpiRange(
+                min=0,
+                max=max(8.0, math.ceil(now12 + 1)),
+                lo=piso,
+                hi=teto,
+                mark=centro,
+                label="meta",
+            ),
         ),
         Kpi(
             label="IPCA do mês",
             value=float(df["ipca_mensal"].iloc[-1]),
             format=pct(2),
             spark=[round(v, 2) for v in last12["ipca_mensal"].tolist()],
+            spark_kind="bars",
             as_of=month_label(last),
         ),
-        Kpi(label="Meses acima do teto (últimos 12)", value=above, format=num(0)),
+        Kpi(
+            label="Meses acima do teto (últimos 12)",
+            value=above,
+            format=num(0, unit="de 12"),
+            dots=above_12,
+            dot_labels=[month_label(ts)[:1].upper() for ts in last12.index],
+            dot_legend=("acima do teto", "dentro ou abaixo"),
+        ),
     ]
 
     same_month_ly = df["ipca_mensal"].get(last - pd.DateOffset(years=1))
@@ -276,6 +329,39 @@ def ipca() -> Build:
             f"do mesmo mês do ano anterior ({fmt_num(float(same_month_ly), 2)}%)."
         )
     insights.append(f"Nos últimos 12 meses, o IPCA ficou acima do teto da meta em {above} deles.")
+
+    highlights = [
+        _hl("acumulado-12m", insights[0], f"{fmt_num(now12, 2)}% · {month_label(last)}", last)
+    ]
+    over = df["ipca_12m"] > df["meta_teto"]
+    if over.any():
+        pos = len(over) - 1 - list(over.to_numpy()[::-1]).index(True)
+        start = pos
+        while start > 0 and over.iloc[start - 1]:
+            start -= 1
+        n_months = pos - start + 1
+        s_ts, e_ts = df.index[start], df.index[pos]
+        highlights.append(
+            _hl(
+                "acumulado-12m",
+                f"O período mais recente acima do teto foi de {month_label(s_ts)} a "
+                f"{month_label(e_ts)}: {n_months} {'mês' if n_months == 1 else 'meses seguidos'}.",
+                f"{n_months} {'mês' if n_months == 1 else 'meses'} acima do teto",
+                e_ts,
+                start=s_ts,
+                end=e_ts,
+            )
+        )
+    peak_ts = df["ipca_12m"].idxmax()
+    highlights.append(
+        _hl(
+            "acumulado-12m",
+            f"O maior valor da série foi {fmt_num(float(df['ipca_12m'].max()), 2)}%, em "
+            f"{month_label(peak_ts, long=True)}.",
+            f"pico: {fmt_num(float(df['ipca_12m'].max()), 2)}%",
+            peak_ts,
+        )
+    )
 
     recent = df.iloc[-24:]
     charts = [
@@ -293,16 +379,15 @@ def ipca() -> Build:
                     color=1,
                 ),
                 Series(
-                    key="meta_teto",
-                    name="Teto da meta",
-                    points=to_points(df["meta_teto"], decimals=2),
-                    style="dashed",
-                    color=2,
-                ),
-                Series(
-                    key="meta_centro",
-                    name="Centro da meta",
+                    key="meta",
+                    name="Meta (centro e intervalo)",
                     points=to_points(df["meta_centro"], decimals=2),
+                    band=[
+                        (ts.strftime("%Y-%m-%d"), round(float(lo), 2), round(float(hi), 2))
+                        for ts, lo, hi in zip(
+                            df.index, df["meta_piso"], df["meta_teto"], strict=True
+                        )
+                    ],
                     style="dashed",
                     color=3,
                 ),
@@ -328,6 +413,7 @@ def ipca() -> Build:
         table=table,
         kpis=kpis,
         insights=insights,
+        highlights=highlights,
         coverage=f"{df.index[0].year}–{last.year}",
         data_until=month_label(last, long=True),
     )
@@ -395,6 +481,23 @@ def dolar() -> Build:
         f"Nos últimos 12 meses, a cotação oscilou entre R$ {fmt_num(float(year.min()), 4)} "
         f"({br_date(year.idxmin())}) e R$ {fmt_num(float(year.max()), 4)} ({br_date(year.idxmax())})."
     )
+    hi_ts, lo_ts = year.idxmax(), year.idxmin()
+    highlights = [
+        _hl("12-meses", insights[0], f"R$ {fmt_num(now, 4)} · {br_date(last_date)}", last_date),
+        _hl(
+            "12-meses",
+            f"A cotação mais alta dos últimos 12 meses foi R$ {fmt_num(float(year.max()), 4)}, "
+            f"em {br_date(hi_ts)}.",
+            f"máxima: R$ {fmt_num(float(year.max()), 2)}",
+            hi_ts,
+        ),
+        _hl(
+            "12-meses",
+            f"A mais baixa foi R$ {fmt_num(float(year.min()), 4)}, em {br_date(lo_ts)}.",
+            f"mínima: R$ {fmt_num(float(year.min()), 2)}",
+            lo_ts,
+        ),
+    ]
     charts = [
         LineChart(
             id="12-meses",
@@ -425,6 +528,7 @@ def dolar() -> Build:
         table=table,
         kpis=kpis,
         insights=insights,
+        highlights=highlights,
         coverage=f"{s.index[0].year}–{last_date.year}",
         data_until=br_date(last_date),
     )
@@ -490,6 +594,21 @@ def desemprego() -> Build:
         insights.append(
             f"A menor taxa da série foi {fmt_num(low, 1)}%, em {month_label(low_ts, long=True)}."
         )
+    highlights = [
+        _hl("historico", insights[0], f"{fmt_num(now, 1)}% · {month_label(last)}", last),
+        _hl(
+            "historico",
+            f"A menor taxa da série foi {fmt_num(low, 1)}%, em {month_label(low_ts, long=True)}.",
+            f"mínima: {fmt_num(low, 1)}%",
+            low_ts,
+        ),
+        _hl(
+            "historico",
+            f"A maior foi {fmt_num(float(s.max()), 1)}%, em {month_label(s.idxmax(), long=True)}.",
+            f"máxima: {fmt_num(float(s.max()), 1)}%",
+            s.idxmax(),
+        ),
+    ]
     recent = yoy.iloc[-24:]
     charts = [
         LineChart(
@@ -520,6 +639,7 @@ def desemprego() -> Build:
         table=table,
         kpis=kpis,
         insights=insights,
+        highlights=highlights,
         coverage=f"{s.index[0].year}–{last.year}",
         data_until=month_label(last, long=True),
     )
