@@ -63,6 +63,9 @@ propriedade **prefixo de URL** (`https://dataan.vercel.app/`) com o método **Ta
 1. O código vai na meta tag `google-site-verification` de todas as páginas. Ele fica em
    `SITE.googleVerification` (`web/src/lib/site.ts`) ou na variável `GOOGLE_SITE_VERIFICATION`
    da Vercel (vários códigos separados por vírgula; precisa de um novo deploy).
+   Alternativa usada hoje: o **arquivo HTML** do Google (`web/public/googlea03653265a44d2be.html`),
+   servido em `https://dataan.vercel.app/googlea03653265a44d2be.html`. Não apague: o Google
+   confere de tempos em tempos.
 2. Depois do deploy, clique em **Verificar** no Search Console.
 3. Em **Sitemaps**, envie `https://dataan.vercel.app/sitemap-index.xml`.
 4. Com domínio próprio, troque para uma propriedade de **domínio** e use o registro TXT no DNS
