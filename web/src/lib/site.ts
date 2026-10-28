@@ -7,6 +7,8 @@ export const SITE = {
     'Plataforma aberta de visualização de dados públicos do Brasil: economia, saúde, meio ambiente, clima e demografia, atualizados automaticamente a partir de fontes oficiais.',
   repo: 'https://github.com/AknoLeonel/DataAn',
   locale: 'pt_BR',
+  /** Códigos de verificação do Google Search Console (públicos por natureza: vão numa meta tag). */
+  googleVerification: ['6o1N63MQlI27sN5KOYBcLrShKxn_CQOt473L8iYVfoo'],
 };
 
 const BASE = import.meta.env.BASE_URL.replace(/\/+$/, '');

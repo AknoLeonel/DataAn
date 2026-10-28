@@ -9,6 +9,11 @@ const site = process.env.SITE_URL || (vercelProd ? `https://${vercelProd}` : 'ht
 const base = process.env.BASE_PATH || '/';
 // Vercel Web Analytics: contagens agregadas, sem cookies. Só no build da Vercel (desligável com DATAAN_ANALYTICS=0).
 const analytics = process.env.VERCEL === '1' && process.env.DATAAN_ANALYTICS !== '0';
+// Códigos extras do Google Search Console (separados por vírgula), sem precisar mudar o código.
+const googleVerification = (process.env.GOOGLE_SITE_VERIFICATION || '')
+  .split(',')
+  .map((t) => t.trim())
+  .filter(Boolean);
 
 export default defineConfig({
   site,
@@ -34,7 +39,12 @@ export default defineConfig({
       ],
     },
   },
-  vite: { define: { __DATAAN_ANALYTICS__: JSON.stringify(analytics) } },
+  vite: {
+    define: {
+      __DATAAN_ANALYTICS__: JSON.stringify(analytics),
+      __GOOGLE_VERIFICATION__: JSON.stringify(googleVerification),
+    },
+  },
   markdown: { syntaxHighlight: false },
   devToolbar: { enabled: false },
 });
