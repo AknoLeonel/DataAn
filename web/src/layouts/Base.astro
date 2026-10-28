@@ -27,6 +27,7 @@ const nav = [
   { href: url('/sobre/'), label: 'Sobre' },
   { href: url('/autor/'), label: 'Quem fez' },
 ];
+const googleVerification = [...new Set([...SITE.googleVerification, ...__GOOGLE_VERIFICATION__])];
 const isCurrent = (href: string) => (href === url('/') ? path === href : path.startsWith(href));
 
 const siteLd = {
@@ -54,6 +55,7 @@ const ld = [siteLd, ...jsonld].map((o) => JSON.stringify(o).replace(/</g, '\\u00
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#0a0d12" />
     <meta name="generator" content={Astro.generator} />
+    {googleVerification.map((code) => <meta name="google-site-verification" content={code} />)}
 
     <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
     <link rel="icon" href={url('/favicon.ico')} sizes="32x32" />

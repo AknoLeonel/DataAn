@@ -55,6 +55,22 @@ Primeiro comentário: link do estudo + link do notebook no Colab.
 4. Faça um novo deploy e confira o `canonical` em qualquer página.
 5. Atualize os links do README e deste arquivo.
 
+## Google Search Console
+
+`dataan.vercel.app` é um subdomínio da Vercel: não dá para criar registro DNS nele. Use a
+propriedade **prefixo de URL** (`https://dataan.vercel.app/`) com o método **Tag HTML**.
+
+1. O código vai na meta tag `google-site-verification` de todas as páginas. Ele fica em
+   `SITE.googleVerification` (`web/src/lib/site.ts`) ou na variável `GOOGLE_SITE_VERIFICATION`
+   da Vercel (vários códigos separados por vírgula; precisa de um novo deploy).
+   Alternativa usada hoje: o **arquivo HTML** do Google (`web/public/googlea03653265a44d2be.html`),
+   servido em `https://dataan.vercel.app/googlea03653265a44d2be.html`. Não apague: o Google
+   confere de tempos em tempos.
+2. Depois do deploy, clique em **Verificar** no Search Console.
+3. Em **Sitemaps**, envie `https://dataan.vercel.app/sitemap-index.xml`.
+4. Com domínio próprio, troque para uma propriedade de **domínio** e use o registro TXT no DNS
+   do seu provedor.
+
 ## Medir sem rastrear
 
 O site usa o **Vercel Web Analytics** (contagens agregadas, sem cookies, servido pelo próprio
